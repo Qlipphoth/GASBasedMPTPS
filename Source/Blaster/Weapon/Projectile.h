@@ -16,6 +16,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* CollisionBox;
+
 	/** 
 	* Used with server-side rewind
 	*/
@@ -39,9 +42,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void InitVFXComponents();
+	
 	void StartDestroyTimer();
 	void DestroyTimerFinished();
 	void SpawnTrailSystem();
+	void SpawnHitImpact();
 	void ExplodeDamage();
 
 	UFUNCTION()
@@ -53,17 +59,37 @@ protected:
 		const FHitResult& Hit
 	);
 
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* ImpactParticles;
+protected:
+	UPROPERTY(EditAnywhere, Category = "VFXs|Impact")
+	class UNiagaraSystem* ImpactNiagara;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "VFXs|Impact")
+	class UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere, Category = "VFXs|Trail")
+	class UNiagaraSystem* TrailSystem;
+
+	UPROPERTY(EditAnywhere, Category = "VFXs|Trail")
+	class UParticleSystem* Tracer;
+
+	UPROPERTY(EditAnywhere, Category = "SFXs")
 	class USoundCue* ImpactSound;
 
-	UPROPERTY(EditAnywhere)
-	class UNiagaraSystem* TrailSystem;
+	UPROPERTY(EditAnywhere, Category = "Damage|Range")
+	float DamageInnerRadius = 200.f;
+
+	UPROPERTY(EditAnywhere, Category = "Damage|Range")
+	float DamageOuterRadius = 500.f;
+
+protected:
+	UPROPERTY()
+	class UNiagaraComponent* ImpactSystemComponent;
 
 	UPROPERTY()
 	class UNiagaraComponent* TrailSystemComponent;
+
+	UPROPERTY()
+	class UParticleSystemComponent* TracerComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	class UProjectileMovementComponent* ProjectileMovementComponent;
@@ -71,27 +97,10 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* ProjectileMesh;
 
-	UPROPERTY(EditAnywhere)
-	float DamageInnerRadius = 200.f;
-
-	UPROPERTY(EditAnywhere)
-	float DamageOuterRadius = 500.f;
-
 private:
-
-	UPROPERTY(EditAnywhere)
-	class UParticleSystem* Tracer;
-
-	UPROPERTY(VisibleAnywhere)
-	class UParticleSystemComponent* TracerComponent;
-
 	FTimerHandle DestroyTimer;
 
 	UPROPERTY(EditAnywhere)
 	float DestroyTime = 3.f;
-
-public:	
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* CollisionBox;
-
+	
 };

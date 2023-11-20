@@ -21,18 +21,26 @@ protected:
 
 	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OntHit);
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace|VFXs")
+	class UNiagaraSystem* ImpactNiagara;
+
+	UPROPERTY(EditAnywhere, Category = "Trace|VFXs")
 	class UParticleSystem* ImpactParticles;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace|SFXs")
 	USoundCue* HitSound;
 
 	// UPROPERTY(EditAnywhere)
 	// float Damage = 20.f;
 
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace|VFXs")
+	class UNiagaraSystem* BeamNiagara;
+
+	UPROPERTY(EditAnywhere, Category = "Trace|VFXs")
 	UParticleSystem* BeamParticles;
+
+	// TODO: Complete In Montage
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* MuzzleFlash;

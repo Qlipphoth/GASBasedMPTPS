@@ -6,8 +6,6 @@
 #include "Projectile.h"
 #include "ProjectileBullet.generated.h"
 
-// TODO: 这里没必要拆成两个类做吧？
-
 /**
  * 
  */

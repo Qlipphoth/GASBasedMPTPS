@@ -40,23 +40,12 @@ void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (Tracer)
-	{
-		TracerComponent = UGameplayStatics::SpawnEmitterAttached(
-			Tracer,
-			CollisionBox,
-			NAME_None,
-			GetActorLocation(),
-			GetActorRotation(),
-			EAttachLocation::KeepWorldPosition
-		);
-	}
-
 	if (HasAuthority())
 	{
 		// 仅在服务器启用碰撞检测
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	}
+	SpawnTrailSystem();
 }
 
 // Called every frame
@@ -85,6 +74,39 @@ void AProjectile::SpawnTrailSystem()
 			EAttachLocation::KeepWorldPosition,
 			false
 		);
+	}
+	else if (Tracer)
+	{
+		TracerComponent = UGameplayStatics::SpawnEmitterAttached(
+			Tracer,
+			CollisionBox,
+			NAME_None,
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition
+		);
+	}
+}
+
+void AProjectile::SpawnHitImpact()
+{
+	if (ImpactNiagara)
+	{
+		ImpactSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			ImpactNiagara,
+			GetActorLocation(),
+			GetActorRotation()
+		);
+	}
+	else if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
 	}
 }
 
@@ -132,14 +154,6 @@ void AProjectile::DestroyTimerFinished()
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
-
-	if (ImpactParticles)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-	}
-	if (ImpactSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
-	}
+	SpawnHitImpact();
 }
 

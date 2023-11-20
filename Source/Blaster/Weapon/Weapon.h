@@ -102,7 +102,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	EFireType FireType;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
 	bool bUseScatter = false;
 
 protected:
@@ -134,10 +134,10 @@ protected:
 	* Trace end with scatter
 	*/
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
 	float DistanceToSphere = 800.f;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
 	float SphereRadius = 75.f;
 
 	UPROPERTY(EditAnywhere)
@@ -152,13 +152,13 @@ protected:
 	class ABlasterPlayerController* BlasterOwnerController;
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	class USphereComponent* AreaSphere;  // 玩家靠近这个范围，就可以捡起武器
 
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon|State")
 	EWeaponState WeaponState;
 
 	UFUNCTION()
@@ -167,11 +167,17 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UWidgetComponent* PickupWidget;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
 	class UAnimationAsset* FireAnimation;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
 	class UAnimationAsset* ReloadAnimation;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|VFXs|Muzzle")
+	class UNiagaraComponent* MuzzleSystemComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|VFXs|Muzzle")
+	class UNiagaraSystem* MuzzleNiagara;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
@@ -222,10 +228,10 @@ public:
 // ====================== Rewind ====================== //
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere, Category = "Weapon|SSR")
 	bool bInitUseServerSideRewind = false;
 
-	UPROPERTY(Replicated, visibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(Replicated, visibleAnywhere, Category = "Weapon")
 	bool bUseServerSideRewind = false;
 
 public:

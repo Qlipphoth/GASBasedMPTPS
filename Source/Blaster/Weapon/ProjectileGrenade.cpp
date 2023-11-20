@@ -18,20 +18,20 @@ AProjectileGrenade::AProjectileGrenade()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->SetIsReplicated(true);
 	ProjectileMovementComponent->bShouldBounce = true;
-
-	
 }
 
 void AProjectileGrenade::BeginPlay()
 {
+	// 注意这里使用的不是 Super::BeginPlay()，因为 OnHit 的行为不同
 	AActor::BeginPlay();
 
 	// 运动时忽略角色
 	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
 
+	// 因此必须手动 Spawn Trail System
 	SpawnTrailSystem();
+	
 	StartDestroyTimer();
-
 	ProjectileMovementComponent->OnProjectileBounce.AddDynamic(this, &AProjectileGrenade::OnBounce);
 }
 

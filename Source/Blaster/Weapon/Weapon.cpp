@@ -13,7 +13,11 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "Animation/AnimInstance.h"
+#include "WeaponAnimInstance.h"
 
 #pragma region Initialization
 
@@ -26,6 +30,13 @@ AWeapon::AWeapon()
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
+
+	UAnimInstance* AnimInstance = WeaponMesh->GetAnimInstance();
+	UWeaponAnimInstance* WeaponAnimInstance = Cast<UWeaponAnimInstance>(AnimInstance);
+	if (WeaponAnimInstance)
+	{
+		WeaponAnimInstance->OwnerWeapon = this;
+	}
 
 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	// 设置武器不会与玩家碰撞
@@ -47,6 +58,9 @@ AWeapon::AWeapon()
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
 
+	MuzzleSystemComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleSystemComponent"));
+	MuzzleSystemComponent->SetupAttachment(WeaponMesh, FName("MuzzleFlash"));
+	MuzzleSystemComponent->SetAutoActivate(false);
 }
 
 void AWeapon::BeginPlay()
@@ -305,6 +319,9 @@ void AWeapon::Fire(const FVector& HitTarget)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 	}
+
+	// 由动画蓝图控制 MuzzleFlash 的播放
+	// MuzzleSystemComponent->Activate();
 
 	if (CasingClass)
 	{

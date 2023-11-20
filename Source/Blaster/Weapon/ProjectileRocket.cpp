@@ -28,7 +28,7 @@ void AProjectileRocket::BeginPlay()
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectileRocket::OnHit);
 	}
 
-	SpawnTrailSystem();
+	// SpawnTrailSystem();
 
 	if (ProjectileLoop && LoopingSoundAttenuation)
 	{
@@ -55,14 +55,17 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	ExplodeDamage();
 	StartDestroyTimer();
 
-	if (ImpactParticles)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-	}
-	if (ImpactSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-	}
+	// if (ImpactParticles)
+	// {
+	// 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	// }
+	// if (ImpactSound)
+	// {
+	// 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	// }
+
+	SpawnHitImpact();
+
 	if (ProjectileMesh)
 	{
 		ProjectileMesh->SetVisibility(false);

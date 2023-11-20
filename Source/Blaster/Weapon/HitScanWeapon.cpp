@@ -11,6 +11,8 @@
 #include "WeaponTypes.h"
 #include "Blaster/BlasterComponents/LagCompensationComponent.h"
 #include "DrawDebugHelpers.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
@@ -69,7 +71,16 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 			}
 		}
 
-		if (ImpactParticles)
+		if (ImpactNiagara)
+		{
+			UNiagaraComponent* Niagara = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				ImpactNiagara,
+				FireHit.ImpactPoint,
+				FireHit.ImpactNormal.Rotation()
+			);
+		}
+		else if (ImpactParticles)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(
 				GetWorld(),
@@ -87,6 +98,8 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				FireHit.ImpactPoint
 			);
 		}
+
+		// TODO: 删除这些
 
 		if (MuzzleFlash)
 		{
