@@ -40,6 +40,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float HeadShotDamage = 40.f;
 
+	UPROPERTY(EditAnywhere)
+	float DestroyTime = 3.f;
+
 protected:
 	virtual void BeginPlay() override;
 	void InitVFXComponents();
@@ -97,10 +100,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* ProjectileMesh;
 
-private:
 	FTimerHandle DestroyTimer;
-
-	UPROPERTY(EditAnywhere)
-	float DestroyTime = 3.f;
 	
 };

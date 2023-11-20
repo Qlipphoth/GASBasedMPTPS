@@ -16,9 +16,11 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
 	UWorld* World = GetWorld();
+	
 	if (MuzzleFlashSocket && World)
 	{
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+		FVector3d MuzzleLocation = SocketTransform.GetLocation();
 		// From muzzle flash socket to hit location from TraceUnderCrosshairs
 		FVector ToTarget = HitTarget - SocketTransform.GetLocation();
 		FRotator TargetRotation = ToTarget.Rotation();
@@ -36,18 +38,13 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 				// 服务器端自己控制的角色，无需 SSR，发射 Replicated Projectile 同步到客户端即可
 				if (InstigatorPawn->IsLocallyControlled()) 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(
-						ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
-					SpawnedProjectile->Damage = Damage;
-					SpawnedProjectile->HeadShotDamage = HeadShotDamage;
+					SpawnProjectiles(ProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
 					// SpawnedProjectile->bUseServerSideRewind = false;
 				}
 				// 服务器端的其他角色，需要生成不会复制到客户端的本地 Projectile，需要使用 SSR
 				else 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(
-						ServerSideRewindProjectileClass, SocketTransform.GetLocation(), 
-						TargetRotation, SpawnParams);
+					SpawnProjectiles(ServerSideRewindProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
 					// 由于服务器端的伤害计算条件是 
 					// OwnerCharacter->HasAuthority() && (!bUseServerSideRewind || OwnerCharacter->IsLocallyControlled())
 					// 如果这里设置为 bUseServerSideRewind = false 会导致客户端发射的子弹多造成一次伤害
@@ -55,7 +52,6 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 					// 因此这里需要设置为 bUseServerSideRewind = true
 					// SpawnedProjectile->bUseServerSideRewind = true;
 				}
-				
 			}
 			// client, using SSR
 			else 
@@ -63,23 +59,17 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 				// 客户端自己控制的角色，需要使用 SSR，并在本地生成 Projectile
 				if (InstigatorPawn->IsLocallyControlled()) 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(
-						ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
-					
-					// 设置用于 PathPrediction 的参数
-					SpawnedProjectile->TraceStart = SocketTransform.GetLocation();
-					SpawnedProjectile->InitialVelocity = 
-						SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
+					SpawnProjectiles(ServerSideRewindProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
 					
 					// 这里设置 Damage 实际上并不能起到作用，计算伤害使用 Server 端的数据
-					SpawnedProjectile->Damage = Damage;
+					// SpawnedProjectile->Damage = Damage;
 					// SpawnedProjectile->bUseServerSideRewind = true;
 				}
 				// 客户端的其他角色，不需要 SSR，生成本地的 Projectile 即可
 				else 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(
-						ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					// TODO: 这里使用两种子弹是不是都可以
+					SpawnProjectiles(ServerSideRewindProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
 					// 客户端其他角色的 bUseServerSideRewind 设置也无关紧要，因为 Rewind 的伤害判定要经过
 					// IsLocallyControlled() 的判断，否则不会造成伤害
 					// SpawnedProjectile->bUseServerSideRewind = false;
@@ -91,15 +81,37 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 		{
 			if (InstigatorPawn->HasAuthority())
 			{
-				SpawnedProjectile = World->SpawnActor<AProjectile>(
-					ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
-				// SpawnedProjectile->bUseServerSideRewind = false;
-				SpawnedProjectile->Damage = Damage;
-				SpawnedProjectile->HeadShotDamage = HeadShotDamage;
+				SpawnProjectiles(ProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
 			}
 		}
+	}
+}
 
-		// 统一将 Projectile 的 bUseServerSideRewind 设置为 Weapon 的 bUseServerSideRewind
-		if (SpawnedProjectile) SpawnedProjectile->bUseServerSideRewind = bUseServerSideRewind;
+
+void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams)
+{	
+	for (uint32 i = 0; i < NumberOfPellets; ++i)
+	{
+		FRotator FinalRotation = bUseScatter ? SpawnRotation + FRotator(
+			FMath::RandRange(-ScatterAngle, ScatterAngle),
+			FMath::RandRange(-ScatterAngle, ScatterAngle),
+			0.f) : SpawnRotation;
+
+		AProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AProjectile>(
+			ProjectileToSpawn, SpawnLocation, FinalRotation, SpawnParams);
+		
+		// TODO: 参数化
+		SpawnedProjectile->DestroyTime = 3.f;
+
+		SpawnedProjectile->Damage = Damage;
+		SpawnedProjectile->HeadShotDamage = HeadShotDamage;
+
+		// 将 Projectile 的 bUseServerSideRewind 设置为 Weapon 的 bUseServerSideRewind
+		SpawnedProjectile->bUseServerSideRewind = bUseServerSideRewind;
+
+		// 设置用于 PathPrediction 的参数
+		SpawnedProjectile->TraceStart = SpawnLocation;
+		SpawnedProjectile->InitialVelocity = 
+			SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
 	}
 }

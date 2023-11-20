@@ -17,14 +17,25 @@ class BLASTER_API AProjectileWeapon : public AWeapon
 public:
 	virtual void Fire(const FVector& HitTarget) override;
 
-private:
+protected:
+	// UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
+	// bool bUseScatter = false;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
+	float ScatterAngle = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|MultiShot")
+	uint32 NumberOfPellets = 10;
+
+private:
 	// Replicate Projectile
-	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
 	TSubclassOf<class AProjectile> ProjectileClass;
 
 	// Non-replicated Projectile
-	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
 	TSubclassOf<AProjectile> ServerSideRewindProjectileClass;
+
+	void SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector3d& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams);
 
 };
