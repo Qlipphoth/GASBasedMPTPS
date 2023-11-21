@@ -25,7 +25,7 @@ protected:
 	float ScatterAngle = 10.f;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|MultiShot")
-	uint32 NumberOfPellets = 10;
+	uint32 NumberOfPellets = 1;
 
 private:
 	// Replicate Projectile

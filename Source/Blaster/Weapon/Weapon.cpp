@@ -29,6 +29,7 @@ AWeapon::AWeapon()
 	SetReplicateMovement(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh->SetRelativeScale3D(InitMeshScale);
 	SetRootComponent(WeaponMesh);
 
 	UAnimInstance* AnimInstance = WeaponMesh->GetAnimInstance();
@@ -57,10 +58,6 @@ AWeapon::AWeapon()
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
-
-	MuzzleSystemComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleSystemComponent"));
-	MuzzleSystemComponent->SetupAttachment(WeaponMesh, FName("MuzzleFlash"));
-	MuzzleSystemComponent->SetAutoActivate(false);
 }
 
 void AWeapon::BeginPlay()

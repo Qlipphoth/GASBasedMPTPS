@@ -20,11 +20,22 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void StartDestroyTimer() override;
+	virtual void DestroyTimerFinished() override;
+
 	UFUNCTION()
 	void OnBounce(const FHitResult& ImpactResult, const FVector& ImpactVelocity);
 
 private:
-
 	UPROPERTY(EditAnywhere)
 	USoundCue* BounceSound;
+
+	UPROPERTY(EditAnywhere)
+	float TrailSystemLifeTime = 2.f;
+
+	FTimerHandle TrailSystemTimerHandle;
+
+	void StartTrailSystemTimer();
+	void TrailSystemTimerFinished();
+
 };

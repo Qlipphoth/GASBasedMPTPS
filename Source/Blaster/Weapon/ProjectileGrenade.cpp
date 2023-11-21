@@ -6,8 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Components/BoxComponent.h"
-
-// TODO: 创建 Grenade 自己的 MovementComponent，实现自定义的移动逻辑
+#include "NiagaraComponent.h"
 
 AProjectileGrenade::AProjectileGrenade()
 {
@@ -23,15 +22,14 @@ AProjectileGrenade::AProjectileGrenade()
 void AProjectileGrenade::BeginPlay()
 {
 	// 注意这里使用的不是 Super::BeginPlay()，因为 OnHit 的行为不同
-	AActor::BeginPlay();
+	Super::BeginPlay();
 
 	// 运动时忽略角色
 	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
-
-	// 因此必须手动 Spawn Trail System
-	SpawnTrailSystem();
 	
-	StartDestroyTimer();
+	// TrailSystemTimer -> 完成后设置子弹不可见 -> 启动 DestroyTimer -> 完成后销毁子弹
+	StartTrailSystemTimer();
+
 	ProjectileMovementComponent->OnProjectileBounce.AddDynamic(this, &AProjectileGrenade::OnBounce);
 }
 
@@ -47,8 +45,54 @@ void AProjectileGrenade::OnBounce(const FHitResult& ImpactResult, const FVector&
 	}
 }
 
-void AProjectileGrenade::Destroyed()
+void AProjectileGrenade::StartTrailSystemTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer, 
+		this, 
+		&AProjectileGrenade::TrailSystemTimerFinished, 
+		DestroyTime
+	);
+}
+
+void AProjectileGrenade::TrailSystemTimerFinished()
 {
 	ExplodeDamage();
-	Super::Destroyed();
+	SpawnHitImpact();
+
+	if (ProjectileMesh)
+	{
+		ProjectileMesh->SetVisibility(false);
+	}
+	if (CollisionBox)
+	{
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
+	{
+		// TrailSystemComponent->GetSystemInstance()->Deactivate();
+		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
+	}
+
+	StartDestroyTimer();
+}
+
+void AProjectileGrenade::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		TrailSystemTimerHandle,
+		this, 
+		&AProjectileGrenade::DestroyTimerFinished, 
+		TrailSystemLifeTime
+	);
+}
+
+void AProjectileGrenade::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+void AProjectileGrenade::Destroyed()
+{
+
 }

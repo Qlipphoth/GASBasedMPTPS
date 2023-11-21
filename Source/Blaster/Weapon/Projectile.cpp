@@ -40,11 +40,14 @@ void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HasAuthority())
-	{
-		// 仅在服务器启用碰撞检测
-		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
-	}
+	// if (HasAuthority())
+	// {
+	// 	// 仅在服务器启用碰撞检测
+	// 	CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+	// }
+	
+	CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
 	SpawnTrailSystem();
 }
 
@@ -57,8 +60,8 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	Destroy();
+	// ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	// Destroy();
 }
 
 void AProjectile::SpawnTrailSystem()
@@ -154,6 +157,6 @@ void AProjectile::DestroyTimerFinished()
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
-	SpawnHitImpact();
+	// SpawnHitImpact();
 }
 

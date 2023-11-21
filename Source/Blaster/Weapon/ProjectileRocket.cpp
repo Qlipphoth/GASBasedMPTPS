@@ -47,24 +47,17 @@ void AProjectileRocket::BeginPlay()
 			false
 		);
 	}
+
+	StartDestroyTimer();
 }
 
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	ExplodeDamage();
-	StartDestroyTimer();
-
-	// if (ImpactParticles)
-	// {
-	// 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-	// }
-	// if (ImpactSound)
-	// {
-	// 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-	// }
-
 	SpawnHitImpact();
+	bShouldExplode = false;
+	StartDestroyTimer();
 
 	if (ProjectileMesh)
 	{
@@ -83,6 +76,26 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	{
 		ProjectileLoopComponent->Stop();
 	}
+}
+
+void AProjectileRocket::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer, 
+		this, 
+		&AProjectileRocket::DestroyTimerFinished, 
+		DestroyTime
+	);
+}
+
+void AProjectileRocket::DestroyTimerFinished()
+{
+	if (bShouldExplode)
+	{
+		ExplodeDamage();
+		SpawnHitImpact();
+	}
+	Destroy();
 }
 
 void AProjectileRocket::Destroyed()

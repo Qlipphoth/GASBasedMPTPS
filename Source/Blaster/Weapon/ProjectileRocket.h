@@ -18,10 +18,13 @@ public:
 	virtual void Destroyed() override;
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
-	virtual void BeginPlay() override;
+	virtual void StartDestroyTimer() override;
+	virtual void DestroyTimerFinished() override;
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* ProjectileLoop;
@@ -33,5 +36,7 @@ protected:
 	USoundAttenuation* LoopingSoundAttenuation;
 
 private:
+	UPROPERTY()
+	bool bShouldExplode = true;  // 用于防止多次爆炸
 
 };

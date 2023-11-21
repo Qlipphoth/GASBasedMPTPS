@@ -40,15 +40,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	float HeadShotDamage = 40.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "LifeSpan")
 	float DestroyTime = 3.f;
 
 protected:
 	virtual void BeginPlay() override;
 	void InitVFXComponents();
 	
-	void StartDestroyTimer();
-	void DestroyTimerFinished();
+	virtual void StartDestroyTimer();
+	virtual void DestroyTimerFinished();
+	
 	void SpawnTrailSystem();
 	void SpawnHitImpact();
 	void ExplodeDamage();

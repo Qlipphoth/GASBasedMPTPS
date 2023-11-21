@@ -20,6 +20,7 @@ AProjectileBullet::AProjectileBullet()
 void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
+	StartDestroyTimer();
 
 	// FPredictProjectilePathParams PathParams;
 	// PathParams.bTraceWithChannel = true;
@@ -42,6 +43,10 @@ void AProjectileBullet::BeginPlay()
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+
+	SpawnHitImpact();
+
 	ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
 	if (OwnerCharacter)
 	{
@@ -57,6 +62,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 				const float DamageToCause = Hit.BoneName.ToString() == 
 					FString("head") ? HeadShotDamage : Damage;
 
+				// TODO: 改为 GAS 计算伤害
 				UGameplayStatics::ApplyDamage(
 					OtherActor, 
 					DamageToCause, 
@@ -67,6 +73,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 			}
 
 			// 客户端（LocallyControlled）开启了回滚则以客户端发送的回滚请求得到的伤害为准
+			// 否则客户端不会造成伤害
 			if (!OwnerCharacter->HasAuthority() && bUseServerSideRewind)
 			{ 
 				ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
@@ -76,6 +83,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 					OwnerCharacter->IsLocallyControlled() && 
 					HitCharacter)
 				{
+					// TODO: 改为 GAS 计算伤害
 					OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(
 						HitCharacter,
 						TraceStart,
@@ -87,7 +95,22 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		}
 	}
 
-	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+	Destroy();
+}
+
+void AProjectileBullet::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer,
+		this,
+		&AProjectileBullet::DestroyTimerFinished,
+		DestroyTime
+	);
+}
+
+void AProjectileBullet::DestroyTimerFinished()
+{
+	Destroy();
 }
 
 #if WITH_EDITOR

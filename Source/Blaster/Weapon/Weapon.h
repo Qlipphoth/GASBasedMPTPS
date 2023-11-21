@@ -155,6 +155,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	USkeletalMeshComponent* WeaponMesh;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon|Basic Properties")
+	FVector InitMeshScale = FVector(1.f, 1.f, 1.f);
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	class USphereComponent* AreaSphere;  // 玩家靠近这个范围，就可以捡起武器
 
@@ -172,12 +175,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
 	class UAnimationAsset* ReloadAnimation;
-
-	UPROPERTY(VisibleAnywhere, Category = "Weapon|VFXs|Muzzle")
-	class UNiagaraComponent* MuzzleSystemComponent;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon|VFXs|Muzzle")
-	class UNiagaraSystem* MuzzleNiagara;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
