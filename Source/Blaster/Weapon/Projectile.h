@@ -4,7 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../GameplayEnums.h"
 #include "Projectile.generated.h"
+
+USTRUCT(BlueprintType)
+struct FProjectileVFX
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* Impact;
+
+	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* Trail;
+};
+
 
 UCLASS()
 class BLASTER_API AProjectile : public AActor
@@ -29,26 +43,29 @@ public:
 	// 精确到小数点后两位
 	FVector_NetQuantize100 InitialVelocity;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Properties|ProjectileType")
+	EProjectileType ProjectileType = EProjectileType::EPT_Normal;
+
+	UPROPERTY(EditAnywhere, Category = "Properties|Movement")
 	float InitialSpeed = 15000;
 
 	// Only set this for Grenades and Rockets
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	float Damage = 20.f;
 
 	// Doesn't matter for Grenades and Rockets
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	float HeadShotDamage = 40.f;
 
-	UPROPERTY(EditAnywhere, Category = "LifeSpan")
-	float DestroyTime = 3.f;
+	UPROPERTY(EditAnywhere, Category = "Properties|Lifetime")
+	float LifeTime = 3.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties|Lifetime")
+	float DestroyDelayTime = 1.f;
 
 protected:
 	virtual void BeginPlay() override;
 	void InitVFXComponents();
-	
-	virtual void StartDestroyTimer();
-	virtual void DestroyTimerFinished();
 	
 	void SpawnTrailSystem();
 	void SpawnHitImpact();
@@ -64,17 +81,17 @@ protected:
 	);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "VFXs|Impact")
-	class UNiagaraSystem* ImpactNiagara;
+	UPROPERTY(EditAnywhere, Category = "VFXs")
+	FProjectileVFX NormalVFX;
 
-	UPROPERTY(EditAnywhere, Category = "VFXs|Impact")
-	class UParticleSystem* ImpactParticles;
+	UPROPERTY(EditAnywhere, Category = "VFXs")
+	FProjectileVFX FlameVFX;
 
-	UPROPERTY(EditAnywhere, Category = "VFXs|Trail")
-	class UNiagaraSystem* TrailSystem;
+	UPROPERTY(EditAnywhere, Category = "VFXs")
+	FProjectileVFX FlashVFX;
 
-	UPROPERTY(EditAnywhere, Category = "VFXs|Trail")
-	class UParticleSystem* Tracer;
+	UPROPERTY(EditAnywhere, Category = "VFXs")
+	FProjectileVFX PoisonVFX;
 
 	UPROPERTY(EditAnywhere, Category = "SFXs")
 	class USoundCue* ImpactSound;
@@ -101,6 +118,22 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* ProjectileMesh;
 
-	FTimerHandle DestroyTimer;
-	
+	void DeactivateProjectile();
+
+	UPROPERTY()
+	bool bShouldExplode = true;  // 用于防止多次爆炸
+
+	FTimerHandle DeActivateTimerHandle;
+	virtual void StartDeActivateTimer();
+	virtual void DeActivateTimerFinished();
+
+	FTimerHandle DestroyTimerHandle;
+	virtual void StartDestroyTimer();
+	virtual void DestroyTimerFinished();
+
+private:
+	class UNiagaraSystem* ImpactNiagara;
+	class UNiagaraSystem* TrailNiagara;
+
+	void SetVFX();
 };

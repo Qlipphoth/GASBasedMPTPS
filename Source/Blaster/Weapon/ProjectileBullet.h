@@ -26,7 +26,6 @@ protected:
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
-	virtual void StartDestroyTimer() override;
-	virtual void DestroyTimerFinished() override;
-
+	virtual void StartDeActivateTimer() override;
+	virtual void DeActivateTimerFinished() override;
 };

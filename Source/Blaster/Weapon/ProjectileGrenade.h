@@ -15,13 +15,12 @@ class BLASTER_API AProjectileGrenade : public AProjectile
 	GENERATED_BODY()
 public:
 	AProjectileGrenade();
-	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void StartDestroyTimer() override;
-	virtual void DestroyTimerFinished() override;
+	virtual void StartDeActivateTimer() override;
+	virtual void DeActivateTimerFinished() override;
 
 	UFUNCTION()
 	void OnBounce(const FHitResult& ImpactResult, const FVector& ImpactVelocity);
@@ -29,13 +28,4 @@ protected:
 private:
 	UPROPERTY(EditAnywhere)
 	USoundCue* BounceSound;
-
-	UPROPERTY(EditAnywhere)
-	float TrailSystemLifeTime = 2.f;
-
-	FTimerHandle TrailSystemTimerHandle;
-
-	void StartTrailSystemTimer();
-	void TrailSystemTimerFinished();
-
 };

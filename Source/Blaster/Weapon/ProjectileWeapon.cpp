@@ -4,6 +4,14 @@
 #include "ProjectileWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Projectile.h"
+#include "../GameplayEnums.h"
+
+void AProjectileWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ProjectileType = InitProjectileType;
+}
 
 void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
@@ -12,6 +20,8 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	// Weapon 被设置为了 Replicate，所以只有服务器端才能发射子弹
 	// 但 Projectile 也被设置为了 Replicate，所以服务器端生成的 Projectile 会被复制到客户端
 	// if (!HasAuthority()) return;
+
+	PlayFireMontage();
 
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
@@ -97,11 +107,18 @@ void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToS
 			FMath::RandRange(-ScatterAngle, ScatterAngle),
 			0.f) : SpawnRotation;
 
-		AProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AProjectile>(
-			ProjectileToSpawn, SpawnLocation, FinalRotation, SpawnParams);
+		FTransform FinalTransform(FinalRotation, SpawnLocation);
+
+		// AProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AProjectile>(
+		// 	ProjectileToSpawn, SpawnLocation, FinalRotation, SpawnParams);
 		
-		// TODO: 参数化
-		SpawnedProjectile->DestroyTime = 3.f;
+		// 延迟生成 Projectile 至参数设置完成
+		AProjectile* SpawnedProjectile = GetWorld()->SpawnActorDeferred<AProjectile>(
+			ProjectileToSpawn, 
+			FinalTransform,
+			SpawnParams.Owner, SpawnParams.Instigator, 
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+		);
 
 		SpawnedProjectile->Damage = Damage;
 		SpawnedProjectile->HeadShotDamage = HeadShotDamage;
@@ -113,5 +130,46 @@ void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToS
 		SpawnedProjectile->TraceStart = SpawnLocation;
 		SpawnedProjectile->InitialVelocity = 
 			SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
+
+		SpawnedProjectile->ProjectileType = ProjectileType;
+
+		// 设置完参数后手动生成
+		SpawnedProjectile->FinishSpawning(FinalTransform);
+	}
+}
+
+void AProjectileWeapon::PlayFireMontage()
+{
+	WeaponAnimInstance = WeaponAnimInstance == nullptr ? GetWeaponMesh()->GetAnimInstance() : WeaponAnimInstance; 
+	if (WeaponAnimInstance && WeaponFireMontage)
+	{
+		WeaponAnimInstance->Montage_Play(WeaponFireMontage);
+		switch (ProjectileType)
+		{
+		case EProjectileType::EPT_Normal:
+			SectionName = FName("Normal");
+			break;
+		case EProjectileType::EPT_Flame:
+			SectionName = FName("Flame");
+			break;
+		case EProjectileType::EPT_Flash:
+			SectionName = FName("Flash");
+			break;
+		case EProjectileType::EPT_Poison:
+			SectionName = FName("Poison");
+			break;
+		}
+		WeaponAnimInstance->Montage_JumpToSection(SectionName, WeaponFireMontage);
+	}
+}
+
+void AProjectileWeapon::Reload()
+{
+	Super::Reload();
+
+	WeaponAnimInstance = WeaponAnimInstance == nullptr ? GetWeaponMesh()->GetAnimInstance() : WeaponAnimInstance; 
+	if (WeaponAnimInstance && WeaponReloadMontage)
+	{
+		WeaponAnimInstance->Montage_Play(WeaponReloadMontage);
 	}
 }

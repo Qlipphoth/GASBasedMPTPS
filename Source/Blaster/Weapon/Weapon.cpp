@@ -29,7 +29,6 @@ AWeapon::AWeapon()
 	SetReplicateMovement(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMesh->SetRelativeScale3D(InitMeshScale);
 	SetRootComponent(WeaponMesh);
 
 	UAnimInstance* AnimInstance = WeaponMesh->GetAnimInstance();
@@ -308,14 +307,14 @@ void AWeapon::Dropped()
 
 #pragma region Fire
 
-/// @brief 播放枪械动画、生成 casing、扣除子弹
+/// @brief 生成 casing、扣除子弹
 /// @param HitTarget 命中点，不起作用
 void AWeapon::Fire(const FVector& HitTarget)
 {
-	if (FireAnimation)
-	{
-		WeaponMesh->PlayAnimation(FireAnimation, false);
-	}
+	// if (FireAnimation)
+	// {
+	// 	WeaponMesh->PlayAnimation(FireAnimation, false);
+	// }
 
 	// 由动画蓝图控制 MuzzleFlash 的播放
 	// MuzzleSystemComponent->Activate();
@@ -435,13 +434,12 @@ void AWeapon::SetHUDAmmo()
 
 #pragma region Reload
 
-void AWeapon::PlayReloadAnimation()
+void AWeapon::Reload()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("PlayReloadAnimation"));
-	if (ReloadAnimation)
-	{
-		WeaponMesh->PlayAnimation(ReloadAnimation, false);
-	}
+	// if (ReloadAnimation)
+	// {
+	// 	WeaponMesh->PlayAnimation(ReloadAnimation, false);
+	// }
 }
 
 #pragma endregion

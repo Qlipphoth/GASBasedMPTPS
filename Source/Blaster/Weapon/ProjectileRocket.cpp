@@ -48,7 +48,7 @@ void AProjectileRocket::BeginPlay()
 		);
 	}
 
-	StartDestroyTimer();
+	StartDeActivateTimer();
 }
 
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
@@ -56,49 +56,40 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 {
 	ExplodeDamage();
 	SpawnHitImpact();
+	DeactivateProjectile();
+	StopLoopingSound();
 	bShouldExplode = false;
+	
 	StartDestroyTimer();
-
-	if (ProjectileMesh)
-	{
-		ProjectileMesh->SetVisibility(false);
-	}
-	if (CollisionBox)
-	{
-		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
-	{
-		// TrailSystemComponent->GetSystemInstance()->Deactivate();
-		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
-	}
-	if (ProjectileLoopComponent && ProjectileLoopComponent->IsPlaying())
-	{
-		ProjectileLoopComponent->Stop();
-	}
 }
 
-void AProjectileRocket::StartDestroyTimer()
+void AProjectileRocket::StartDeActivateTimer()
 {
 	GetWorldTimerManager().SetTimer(
-		DestroyTimer, 
+		DeActivateTimerHandle,
 		this, 
-		&AProjectileRocket::DestroyTimerFinished, 
-		DestroyTime
+		&AProjectileRocket::DeActivateTimerFinished, 
+		LifeTime
 	);
 }
 
-void AProjectileRocket::DestroyTimerFinished()
+void AProjectileRocket::DeActivateTimerFinished()
 {
 	if (bShouldExplode)
 	{
 		ExplodeDamage();
 		SpawnHitImpact();
+		DeactivateProjectile();
+		StopLoopingSound();
 	}
-	Destroy();
+
+	StartDestroyTimer();
 }
 
-void AProjectileRocket::Destroyed()
+void AProjectileRocket::StopLoopingSound()
 {
-	// 与父类不同，这里不使用 Destroyed 来播放音效及特效，直接在 OnHit 中处理
+	if (ProjectileLoopComponent && ProjectileLoopComponent->IsPlaying())
+	{
+		ProjectileLoopComponent->Stop();
+	}
 }

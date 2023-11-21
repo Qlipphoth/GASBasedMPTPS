@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon.h"
+#include "../GameplayEnums.h"
 #include "ProjectileWeapon.generated.h"
 
 /**
@@ -16,8 +17,11 @@ class BLASTER_API AProjectileWeapon : public AWeapon
 
 public:
 	virtual void Fire(const FVector& HitTarget) override;
+	virtual void Reload() override;
 
 protected:
+	virtual void BeginPlay() override;
+
 	// UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
 	// bool bUseScatter = false;
 
@@ -36,6 +40,30 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
 	TSubclassOf<AProjectile> ServerSideRewindProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
+	EProjectileType InitProjectileType = EProjectileType::EPT_Normal;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Projectile")
+	EProjectileType ProjectileType;
+
 	void SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector3d& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams);
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
+	class UAnimMontage* WeaponFireMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
+	class UAnimMontage* WeaponReloadMontage;
+
+	void PlayFireMontage();
+
+	UPROPERTY()
+	class UAnimInstance* WeaponAnimInstance;
+
+	UPROPERTY()
+	FName SectionName = FName("Normal");
+
+public:
+	EProjectileType GetProjectileType() const { return ProjectileType; }
+	void SetProjectileType(EProjectileType NewType) { ProjectileType = NewType; }
 
 };

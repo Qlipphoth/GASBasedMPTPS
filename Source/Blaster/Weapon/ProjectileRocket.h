@@ -15,7 +15,6 @@ class BLASTER_API AProjectileRocket : public AProjectile
 	GENERATED_BODY()
 public:
 	AProjectileRocket();
-	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -23,8 +22,8 @@ protected:
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
-	virtual void StartDestroyTimer() override;
-	virtual void DestroyTimerFinished() override;
+	virtual void StartDeActivateTimer() override;
+	virtual void DeActivateTimerFinished() override;
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* ProjectileLoop;
@@ -35,8 +34,5 @@ protected:
 	UPROPERTY(EditAnywhere)
 	USoundAttenuation* LoopingSoundAttenuation;
 
-private:
-	UPROPERTY()
-	bool bShouldExplode = true;  // 用于防止多次爆炸
-
+	void StopLoopingSound();
 };

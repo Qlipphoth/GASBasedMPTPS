@@ -41,7 +41,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void Fire(const FVector& HitTarget);
-	virtual void PlayReloadAnimation();
+	virtual void Reload();
 	
 	virtual void OnRep_Owner() override;
 	void SetHUDAmmo();
@@ -154,9 +154,6 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	USkeletalMeshComponent* WeaponMesh;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon|Basic Properties")
-	FVector InitMeshScale = FVector(1.f, 1.f, 1.f);
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Basic Properties")
 	class USphereComponent* AreaSphere;  // 玩家靠近这个范围，就可以捡起武器

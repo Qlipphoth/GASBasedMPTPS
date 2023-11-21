@@ -20,7 +20,7 @@ AProjectileBullet::AProjectileBullet()
 void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
-	StartDestroyTimer();
+	StartDeActivateTimer();
 
 	// FPredictProjectilePathParams PathParams;
 	// PathParams.bTraceWithChannel = true;
@@ -44,8 +44,6 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
-
-	SpawnHitImpact();
 
 	ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
 	if (OwnerCharacter)
@@ -95,23 +93,33 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		}
 	}
 
-	Destroy();
+	SpawnHitImpact();
+	DeactivateProjectile();
+	bShouldExplode = false;
+
+	StartDestroyTimer();
 }
 
-void AProjectileBullet::StartDestroyTimer()
+void AProjectileBullet::StartDeActivateTimer()
 {
 	GetWorldTimerManager().SetTimer(
-		DestroyTimer,
+		DeActivateTimerHandle,
 		this,
-		&AProjectileBullet::DestroyTimerFinished,
-		DestroyTime
+		&AProjectileBullet::DeActivateTimerFinished,
+		LifeTime
 	);
 }
 
-void AProjectileBullet::DestroyTimerFinished()
+void AProjectileBullet::DeActivateTimerFinished()
 {
-	Destroy();
+	if (bShouldExplode)
+	{
+		DeactivateProjectile();
+	}
+
+	StartDestroyTimer();
 }
+
 
 #if WITH_EDITOR
 

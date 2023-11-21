@@ -535,7 +535,7 @@ void UCombatComponent::HandleReload()
 	{
 		Character->PlayReloadMontage();
 	}
-	EquippedWeapon->PlayReloadAnimation();
+	EquippedWeapon->Reload();
 }
 
 void UCombatComponent::FinishReloading()

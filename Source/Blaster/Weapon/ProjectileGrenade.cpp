@@ -28,7 +28,7 @@ void AProjectileGrenade::BeginPlay()
 	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
 	
 	// TrailSystemTimer -> 完成后设置子弹不可见 -> 启动 DestroyTimer -> 完成后销毁子弹
-	StartTrailSystemTimer();
+	StartDeActivateTimer();
 
 	ProjectileMovementComponent->OnProjectileBounce.AddDynamic(this, &AProjectileGrenade::OnBounce);
 }
@@ -45,54 +45,24 @@ void AProjectileGrenade::OnBounce(const FHitResult& ImpactResult, const FVector&
 	}
 }
 
-void AProjectileGrenade::StartTrailSystemTimer()
+void AProjectileGrenade::StartDeActivateTimer()
 {
 	GetWorldTimerManager().SetTimer(
-		DestroyTimer, 
+		DeActivateTimerHandle,
 		this, 
-		&AProjectileGrenade::TrailSystemTimerFinished, 
-		DestroyTime
+		&AProjectileGrenade::DeActivateTimerFinished,
+		LifeTime
 	);
 }
 
-void AProjectileGrenade::TrailSystemTimerFinished()
+void AProjectileGrenade::DeActivateTimerFinished()
 {
-	ExplodeDamage();
-	SpawnHitImpact();
-
-	if (ProjectileMesh)
+	if (bShouldExplode)
 	{
-		ProjectileMesh->SetVisibility(false);
-	}
-	if (CollisionBox)
-	{
-		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
-	{
-		// TrailSystemComponent->GetSystemInstance()->Deactivate();
-		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
+		ExplodeDamage();
+		SpawnHitImpact();
+		DeactivateProjectile();
 	}
 
 	StartDestroyTimer();
-}
-
-void AProjectileGrenade::StartDestroyTimer()
-{
-	GetWorldTimerManager().SetTimer(
-		TrailSystemTimerHandle,
-		this, 
-		&AProjectileGrenade::DestroyTimerFinished, 
-		TrailSystemLifeTime
-	);
-}
-
-void AProjectileGrenade::DestroyTimerFinished()
-{
-	Destroy();
-}
-
-void AProjectileGrenade::Destroyed()
-{
-
 }

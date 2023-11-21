@@ -18,4 +18,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class AWeapon* OwnerWeapon = nullptr;
 
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float DeltaTime) override;
 };

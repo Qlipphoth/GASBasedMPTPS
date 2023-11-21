@@ -48,6 +48,8 @@ void AProjectile::BeginPlay()
 	
 	CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
+	
+	SetVFX();
 	SpawnTrailSystem();
 }
 
@@ -64,29 +66,41 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	// Destroy();
 }
 
+void AProjectile::SetVFX()
+{
+	switch (ProjectileType)
+	{
+	case EProjectileType::EPT_Normal:
+		ImpactNiagara = NormalVFX.Impact;
+		TrailNiagara = NormalVFX.Trail;
+		break;
+	case EProjectileType::EPT_Flame:
+		ImpactNiagara = FlameVFX.Impact;
+		TrailNiagara = FlameVFX.Trail;
+		break;
+	case EProjectileType::EPT_Flash:
+		ImpactNiagara = FlashVFX.Impact;
+		TrailNiagara = FlashVFX.Trail;
+		break;
+	case EProjectileType::EPT_Poison:
+		ImpactNiagara = PoisonVFX.Impact;
+		TrailNiagara = PoisonVFX.Trail;
+		break;
+	}
+}
+
 void AProjectile::SpawnTrailSystem()
 {
-	if (TrailSystem)
+	if (TrailNiagara)
 	{
 		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			TrailSystem,
+			TrailNiagara,
 			GetRootComponent(),
 			FName(),
 			GetActorLocation(),
 			GetActorRotation(),
 			EAttachLocation::KeepWorldPosition,
 			false
-		);
-	}
-	else if (Tracer)
-	{
-		TracerComponent = UGameplayStatics::SpawnEmitterAttached(
-			Tracer,
-			CollisionBox,
-			NAME_None,
-			GetActorLocation(),
-			GetActorRotation(),
-			EAttachLocation::KeepWorldPosition
 		);
 	}
 }
@@ -101,10 +115,6 @@ void AProjectile::SpawnHitImpact()
 			GetActorLocation(),
 			GetActorRotation()
 		);
-	}
-	else if (ImpactParticles)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
 	}
 
 	if (ImpactSound)
@@ -138,13 +148,40 @@ void AProjectile::ExplodeDamage()
 	}
 }
 
+void AProjectile::DeactivateProjectile()
+{
+	if (ProjectileMesh)
+	{
+		ProjectileMesh->SetVisibility(false);
+	}
+	if (CollisionBox)
+	{
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
+	{
+		// TrailSystemComponent->GetSystemInstance()->Deactivate();
+		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
+	}
+}
+
+void AProjectile::StartDeActivateTimer()
+{
+
+}
+
+void AProjectile::DeActivateTimerFinished()
+{
+
+}
+
 void AProjectile::StartDestroyTimer()
 {
 	GetWorldTimerManager().SetTimer(
-		DestroyTimer,
+		DestroyTimerHandle,
 		this,
 		&AProjectile::DestroyTimerFinished,
-		DestroyTime
+		DestroyDelayTime
 	);
 }
 
