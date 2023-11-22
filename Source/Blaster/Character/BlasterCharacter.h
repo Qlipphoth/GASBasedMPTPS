@@ -4,17 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Components/TimelineComponent.h"
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "Blaster/BlasterTypes/Team.h"
+#include "Blaster/BlasterTypes/InputID.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayEffect.h"
 #include "BlasterCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
 UCLASS()
-class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
+class BLASTER_API ABlasterCharacter : 
+	public ACharacter, public IInteractWithCrosshairsInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -24,12 +28,30 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+	virtual void PossessedBy(AController* NewController) override;
+
+	// Switch on AbilityID to return individual ability levels. 
+	// Hardcoded to 1 for every ability in this project.
+	UFUNCTION(BlueprintCallable, Category = "GAS|Character")
+	virtual int32 GetAbilityLevel(EBlasterGAInputID AbilityID) const;
+
+	// Removes all CharacterAbilities. Can only be called by the Server. 
+	// Removing on the Server will remove from Client too.
+	virtual void RemoveCharacterAbilities();
+
+	// Implement IAbilitySystemInterface
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	void         PlayFireMontage(bool bAiming);
 	void 	   	 PlayReloadMontage();	
 	void		 PlayElimMontage();
-	void         PlayHitReactMontage();
+	
 	void         PlayThrowGrenadeMontage();
 	void         GrenadeButtonPressed();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayHitReactMontage();
+	void PlayHitReactMontage_Implementation();
 
 	// 使用 Replicate 代替了 RPC
 	// UFUNCTION(NetMulticast, Unreliable)
@@ -51,14 +73,63 @@ public:
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 
-	void SpawnDefaultWeapon();
-
 	UPROPERTY()
 	// TMap<FName, class UBoxComponent*> HitCollisionBoxes;
 	TMap<FName, class USphereComponent*> HitCollisionBoxes;
 
 protected:
+
+	//******************************** GAS References ********************************//
+
+	TWeakObjectPtr<class UBlasterASC> AbilitySystemComponent;
+	TWeakObjectPtr<class UBlasterAttributeSetBase> AttributeSetBase;
+
+	//********************************************************************************//
+
 	virtual void BeginPlay() override;
+
+	// Client only
+	virtual void OnRep_PlayerState() override;
+
+	// Called from both SetupPlayerInputComponent and OnRep_PlayerState because of a potential race condition 
+	// where the PlayerController might call ClientRestart which calls SetupPlayerInputComponent before the 
+	// PlayerState is repped to the client so the PlayerState would be null in SetupPlayerInputComponent.
+	// Conversely, the PlayerState might be repped before the PlayerController calls ClientRestart 
+	// so the Actor's InputComponent would be null in OnRep_PlayerState.
+	void BindASCInput();
+
+	// Default abilities for this Character. These will be removed on Character death and 
+	// regiven if Character respawns.
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS|Abilities")
+	TArray<TSubclassOf<class UBlasterGA>> InitialAbilities;
+
+	// Default attributes for a character for initializing on spawn/respawn.
+	// This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS|Attributes")
+	TSubclassOf<class UGameplayEffect> InitialAttributes;
+
+	// These effects are only applied one time on startup
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS|Effects")
+	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
+
+	// Grant abilities on the Server. The Ability Specs will be replicated to the owning client.
+	virtual void AddInitialAbilities();
+
+	// Initialize the Character's attributes. Must run on Server but we run it on Client too
+	// so that we don't have to wait. The Server's replication to the Client won't matter since
+	// the values should be the same.
+	virtual void InitializeAttributes();
+
+	virtual void AddStartupEffects();
+
+	/**
+	* Setters for Attributes. Only use these in special cases like Respawning, otherwise use a GE to change Attributes.
+	* These change the Attribute's Base Value.
+	*/
+
+	virtual void SetHealth(float Health);
+	virtual void SetMana(float Mana);
+	virtual void SetStamina(float Stamina);
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -89,7 +160,27 @@ protected:
 	// 会让 Server 上的 Controller->Pawn 也变成无敌，因此逻辑不会有问题。
 	bool bInvincible = false;
 
+	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+
 private:
+
+	//*********************************** Important References *********************************//
+
+	bool ASCInputBound = false;
+
+	UPROPERTY()
+	class ABlasterPlayerState* BlasterPlayerState;
+
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterPlayerController;
+
+	UPROPERTY()
+	class UAnimInstance* AnimInstance;
+
+	UPROPERTY()
+	class ABlasterGameMode* BlasterGameMode;
+
+	//*****************************************************************************************//
 
 	/** 
 	* Blaster components
@@ -168,12 +259,11 @@ private:
 	*/
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	float MaxHealth = 100.f;
+	float MaxHP = 100.f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
-	float Health = 100.f;
+	float HP = 100.f;
 
-	// TODO: 接收参数是怎么回事？
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
@@ -189,10 +279,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_Shield(float LastShield);
-
-
-	UPROPERTY()
-	class ABlasterPlayerController* BlasterPlayerController;
 
 	bool bElimmed = false;
 
@@ -239,8 +325,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* ElimBotSound;
 
-	UPROPERTY(VisibleAnywhere)
-	class ABlasterPlayerState* BlasterPlayerState;
 
 	/** 
 	* Grenade
@@ -248,16 +332,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* AttachedGrenade;
-
-	/** 
-	* Default weapon
-	*/
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AWeapon> DefaultWeaponClass;
-
-	UPROPERTY()
-	class ABlasterGameMode* BlasterGameMode;
 
 protected:  // Hit boxes used for server-side rewind
 
@@ -278,58 +352,6 @@ protected:  // Hit boxes used for server-side rewind
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* pelvis;
 
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* pelvis;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* spine_02;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* spine_03;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* upperarm_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* upperarm_r;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* lowerarm_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* lowerarm_r;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* hand_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* hand_r;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* backpack;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* blanket;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* thigh_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* thigh_r;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* calf_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* calf_r;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* foot_l;
-
-	// UPROPERTY(EditAnywhere)
-	// UBoxComponent* foot_r;
-
 public:	// Getter & Setter
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped() const;
@@ -343,13 +365,19 @@ public:	// Getter & Setter
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	
-	FORCEINLINE float GetHealth() const { return Health; }
-	FORCEINLINE void SetHealth(float Amount) { Health = Amount; }
-	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetHP() const { return HP; }
+	FORCEINLINE void SetHP(float Amount) { HP = Amount; }
+	FORCEINLINE float GetMaxHP() const { return MaxHP; }
 	FORCEINLINE float GetShield() const { return Shield; }
 	FORCEINLINE void SetShield(float Amount) { Shield = Amount; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FGameplayEffectSpecHandle GetDamageEffectSpecHandle() const { return DamageEffectSpecHandle; }
+	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetDamageEffectSpecHandle(FGameplayEffectSpecHandle Handle) { DamageEffectSpecHandle = Handle; }
+
 	ECombatState GetCombatState() const;
 	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 
@@ -364,6 +392,47 @@ public:	// Getter & Setter
 
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
+
+public:
+	/**
+	* Getters for attributes from GDAttributeSetBase
+	**/
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMana() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMaxMana() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetStamina() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMaxStamina() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetAttackPower() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetAttackSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMoveSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetMoveSpeedBaseValue() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetJumpSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetJumpSpeedBaseValue() const;
 
 // ========================= swap weapon ========================= // 
 private:

@@ -17,6 +17,7 @@
 #include "Blaster/Character/BlasterAnimInstance.h"
 #include "Blaster/Weapon/Projectile.h"
 #include "Blaster/Weapon/Shotgun.h"
+#include "Blaster/HUD/CharacterOverlay.h"
 
 #pragma region Initialization
 
@@ -810,9 +811,6 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 	// 注意这里一定要先 SetOwner 再 SetWeaponState，这样才能根据 Owner 正确绑定事件
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
-	// FString CharacterName = Character == nullptr ? "nullptr" : Character->GetName();
-	// GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("EquipPrimaryWeapon: %s"), *CharacterName));
-
 	EquippedWeapon->SetHUDAmmo();
 	UpdateCarriedAmmo();
 	PlayEquipWeaponSound(WeaponToEquip);
@@ -828,14 +826,6 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 	AttachActorToBackpack(WeaponToEquip);
 
 	PlayEquipWeaponSound(WeaponToEquip);
-	// if (SecondaryWeapon->GetWeaponMesh())
-	// {
-	// 	SecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
-	// 	SecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
-	// }
-
-	// if (EquippedWeapon == nullptr) return;
-	// EquippedWeapon->SetOwner(Character);
 	SecondaryWeapon->SetOwner(Character);
 
 	// Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -852,12 +842,6 @@ void UCombatComponent::OnRep_SecondaryWeapon(AWeapon* LastSecondaryWeapon)
 		{
 			PlayEquipWeaponSound(SecondaryWeapon);
 		}
-		// PlayEquipWeaponSound(SecondaryWeapon);
-		// if (SecondaryWeapon->GetWeaponMesh())
-		// {
-		// 	SecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
-		// 	SecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
-		// }
 	}
 }
 
@@ -865,12 +849,6 @@ void UCombatComponent::DropEquippedWeapon()
 {
 	if (EquippedWeapon)
 	{
-		// if (EquippedWeapon->bDestroyWeapon) {
-		// 	EquippedWeapon->Destroy();
-		// }
-		// else {
-		// 	EquippedWeapon->Dropped();
-		// }
 		EquippedWeapon->Dropped();
 	}
 }

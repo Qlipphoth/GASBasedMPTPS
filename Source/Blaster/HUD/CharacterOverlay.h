@@ -59,4 +59,26 @@ public:
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* HighPingAnimation;
+
+public:
+	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDShield(float Shield, float MaxShield);
+	void SetHUDScore(float Score);
+	void SetHUDDefeats(int32 Defeats);
+	void SetHUDWeaponAmmo(int32 Ammo);
+	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDGrenades(int32 Grenades);
+
+	void HighPingWarning();
+	void StopHighPingWarning();
+
+	void SetHUDRedTeamScore(int32 RedScore);
+	void SetHUDBlueTeamScore(int32 BlueScore);
+	void HideTeamScores();
+	void InitTeamScores();
+
+private:
+	virtual void NativeConstruct() override;
+
 };

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "../../GameplayEnums.h"
+#include "Blaster/BlasterTypes/InputID.h"
 #include "BlasterGA.generated.h"
 
 /**
@@ -20,11 +20,11 @@ public:
 
 	// Abilities with this set will automatically activate when the input is pressed
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-	EBlasterGAInputID AbilityInputID = EBlasterGAInputID::EID_None;
+	EBlasterGAInputID AbilityInputID = EBlasterGAInputID::None;
 	
 	// Value to associate an ability with an slot without tying it to an automatically activated input.
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-	EBlasterGAInputID AbilityID = EBlasterGAInputID::EID_None;
+	EBlasterGAInputID AbilityID = EBlasterGAInputID::None;
 
 	// Tells an ability to activate immediately when its granted. 
 	// Used for passive abilities and abilities forced on others.

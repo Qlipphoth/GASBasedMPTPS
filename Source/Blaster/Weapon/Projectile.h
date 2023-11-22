@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../GameplayEnums.h"
+#include "Blaster/BlasterTypes/ProjectileType.h"
+#include "GameplayEffect.h"
 #include "Projectile.generated.h"
 
 USTRUCT(BlueprintType)
@@ -56,6 +57,9 @@ public:
 	// Doesn't matter for Grenades and Rockets
 	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	float HeadShotDamage = 40.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
+	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Properties|Lifetime")
 	float LifeTime = 3.f;

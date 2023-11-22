@@ -2,6 +2,10 @@
 
 
 #include "BlasterAttributeSetBase.h"
+#include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
 UBlasterAttributeSetBase::UBlasterAttributeSetBase()
@@ -21,6 +25,79 @@ void UBlasterAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attr
 void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
     Super::PostGameplayEffectExecute(Data);
+
+    FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
+    UAbilitySystemComponent* Source = Context.GetOriginalInstigatorAbilitySystemComponent();
+    const FGameplayTagContainer& SourceTags = *Data.EffectSpec.CapturedSourceTags.GetAggregatedTags();
+    FGameplayTagContainer SpecAssetTags;
+    Data.EffectSpec.GetAllAssetTags(SpecAssetTags);
+
+    // Get the Target actor, which should be our owner
+    AActor* TargetActor = nullptr;
+    AController* TargetController = nullptr;
+    ABlasterCharacter* TargetCharacter = nullptr;
+    if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+    {
+        TargetActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+        TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
+        TargetCharacter = Cast<ABlasterCharacter>(TargetActor);
+    }
+
+    // Get the Source actor
+    AActor* SourceActor = nullptr;
+    AController* SourceController = nullptr;
+    ABlasterCharacter* SourceCharacter = nullptr;
+    if (Source && Source->AbilityActorInfo.IsValid() && Source->AbilityActorInfo->AvatarActor.IsValid())
+    {
+        SourceActor = Source->AbilityActorInfo->AvatarActor.Get();
+        SourceController = Source->AbilityActorInfo->PlayerController.Get();
+        if (SourceController == nullptr && SourceActor != nullptr)
+		{
+			if (APawn* Pawn = Cast<APawn>(SourceActor))
+			{
+				SourceController = Pawn->GetController();
+			}
+		}
+
+        // Use the controller to find the source pawn
+        if (SourceController)
+        {
+            SourceCharacter = Cast<ABlasterCharacter>(SourceController->GetPawn());
+        }
+        else
+        {
+            SourceCharacter = Cast<ABlasterCharacter>(SourceActor);
+        }
+
+        // Set the causer actor based on context if it's set
+        if (Context.GetEffectCauser())
+        {
+            SourceActor = Context.GetEffectCauser();
+        }
+    }
+
+    if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+    {
+        // Store a local copy of the amount of damage done and clear the damage attribute
+		const float LocalDamageDone = GetDamage();
+		SetDamage(0.f);
+
+        if (LocalDamageDone > 0.f)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage > 0"));
+
+            // Apply the health change and then clamp it
+            const float OldHealth = GetHealth();
+            SetHealth(FMath::Clamp(OldHealth - LocalDamageDone, 0.0f, GetMaxHealth()));
+
+            // PlayHitReact, this is a NetMulticast RPC so it will run on both the server and clients
+            TargetCharacter->PlayHitReactMontage();
+
+            // Show damage number for the Source player unless it was self damage
+            
+        }
+    }
+
 }
 
 #pragma endregion

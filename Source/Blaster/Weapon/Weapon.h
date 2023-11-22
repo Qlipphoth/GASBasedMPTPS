@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WeaponTypes.h"
+#include "GameplayEffect.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -140,11 +141,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Scatter")
 	float SphereRadius = 75.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Weapon|Damage")
 	float Damage = 20.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Weapon|Damage")
 	float HeadShotDamage = 40.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Damage")
+	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
 	UPROPERTY()
 	class ABlasterCharacter* BlasterOwnerCharacter;
@@ -218,6 +222,8 @@ public:
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
+
+	FORCEINLINE void SetDamageEffectSpecHandle(FGameplayEffectSpecHandle Handle) { DamageEffectSpecHandle = Handle; }
 
 // ====================== Rewind ====================== //
 

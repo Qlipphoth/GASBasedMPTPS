@@ -4,7 +4,72 @@
 #include "BlasterPlayerState.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "Blaster/BlasterGAS/BlasterASC.h"
+#include "Blaster/BlasterGAS/BlasterAttributeSetBase.h"
+#include "Blaster/BlasterTypes/InputID.h"
 #include "Net/UnrealNetwork.h"
+
+ABlasterPlayerState::ABlasterPlayerState()
+{
+    // Create ability system component, and set it to be explicitly replicated
+    AbilitySystemComponent = CreateDefaultSubobject<UBlasterASC>(TEXT("AbilitySystemComponent"));
+    AbilitySystemComponent->SetIsReplicated(true);
+
+    // Mixed mode means we only are replicated the GEs to ourself, not the GEs to simulated proxies. 
+	// If another GDPlayerState (Hero) receives a GE, we won't be told about it by the Server. 
+	// Attributes, GameplayTags, and GameplayCues will still replicate to us.
+    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+    // Create the attribute set, this replicates by default
+	// Adding it as a subobject of the owning actor of an AbilitySystemComponent
+	// automatically registers the AttributeSet with the AbilitySystemComponent
+    AttributeSetBase = CreateDefaultSubobject<UBlasterAttributeSetBase>(TEXT("AttributeSetBase"));
+
+    // Set PlayerState's NetUpdateFrequency to the same as the Character.
+	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
+	// 100 is probably way too high for a shipping game, you can adjust to fit your needs.
+    NetUpdateFrequency = 100.0f;
+
+}
+
+void ABlasterPlayerState::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (AbilitySystemComponent)
+    {
+        // Attribute change callbacks
+		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABlasterPlayerState::HealthChanged);
+		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetMaxHealthAttribute()).AddUObject(this, &ABlasterPlayerState::MaxHealthChanged);
+		HealthRegenRateChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetHealthRegenRateAttribute()).AddUObject(this, &ABlasterPlayerState::HealthRegenRateChanged);
+		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetManaAttribute()).AddUObject(this, &ABlasterPlayerState::ManaChanged);
+		MaxManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetMaxManaAttribute()).AddUObject(this, &ABlasterPlayerState::MaxManaChanged);
+		ManaRegenRateChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetManaRegenRateAttribute()).AddUObject(this, &ABlasterPlayerState::ManaRegenRateChanged);
+		StaminaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetStaminaAttribute()).AddUObject(this, &ABlasterPlayerState::StaminaChanged);
+		MaxStaminaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetMaxStaminaAttribute()).AddUObject(this, &ABlasterPlayerState::MaxStaminaChanged);
+		StaminaRegenRateChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetStaminaRegenRateAttribute()).AddUObject(this, &ABlasterPlayerState::StaminaRegenRateChanged);
+		AttackPowerChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetAttackPowerAttribute()).AddUObject(this, &ABlasterPlayerState::AttackPowerChanged);
+        AttackSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetAttackSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::AttackSpeedChanged);
+        MoveSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetMoveSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::MoveSpeedChanged);
+        JumpSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetJumpSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::JumpSpeedChanged);
+    
+        // Tags change callbacks
+    }
+}
+
 
 void ABlasterPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
@@ -93,3 +158,183 @@ void ABlasterPlayerState::OnRep_Team()
 		BCharacter->SetTeamColor(Team);
 	}
 }
+
+#pragma region Getters
+
+UAbilitySystemComponent* ABlasterPlayerState::GetAbilitySystemComponent() const
+{
+    return AbilitySystemComponent;
+}
+
+UBlasterAttributeSetBase* ABlasterPlayerState::GetAttributeSetBase() const
+{
+    return AttributeSetBase;
+}
+
+bool ABlasterPlayerState::IsAlive() const
+{
+    return GetHealth() > 0.0f;
+}
+
+float ABlasterPlayerState::GetHealth() const
+{
+    return AttributeSetBase->GetHealth();
+}
+
+float ABlasterPlayerState::GetMaxHealth() const
+{
+    return AttributeSetBase->GetMaxHealth();
+}
+
+float ABlasterPlayerState::GetHealthRegenRate() const
+{
+    return AttributeSetBase->GetHealthRegenRate();
+}
+
+float ABlasterPlayerState::GetMana() const
+{
+    return AttributeSetBase->GetMana();
+}
+
+float ABlasterPlayerState::GetMaxMana() const
+{
+    return AttributeSetBase->GetMaxMana();
+}
+
+float ABlasterPlayerState::GetManaRegenRate() const
+{
+    return AttributeSetBase->GetManaRegenRate();
+}
+
+float ABlasterPlayerState::GetStamina() const
+{
+    return AttributeSetBase->GetStamina();
+}
+
+float ABlasterPlayerState::GetMaxStamina() const
+{
+    return AttributeSetBase->GetMaxStamina();
+}
+
+float ABlasterPlayerState::GetStaminaRegenRate() const
+{
+    return AttributeSetBase->GetStaminaRegenRate();
+}
+
+float ABlasterPlayerState::GetAttackPower() const
+{
+    return AttributeSetBase->GetAttackPower();
+}
+
+float ABlasterPlayerState::GetAttackSpeed() const
+{
+    return AttributeSetBase->GetAttackSpeed();
+}
+
+float ABlasterPlayerState::GetMoveSpeed() const
+{
+    return AttributeSetBase->GetMoveSpeed();
+}
+
+float ABlasterPlayerState::GetJumpSpeed() const
+{
+    return AttributeSetBase->GetJumpSpeed();
+}
+
+#pragma endregion
+
+#pragma region Attribute changed callbacks
+
+void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
+{
+    // SetHealth(Data.NewValue);
+
+	// HUD
+	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	if (Character)
+	{
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+            Controller->SetHUDHealth(GetHealth(), GetMaxHealth());
+		}
+	}
+
+}
+
+void ABlasterPlayerState::MaxHealthChanged(const FOnAttributeChangeData& Data)
+{
+    // SetMaxHealth(Data.NewValue);
+}
+
+void ABlasterPlayerState::HealthRegenRateChanged(const FOnAttributeChangeData& Data)
+{
+    // SetHealthRegenRate(Data.NewValue);
+}
+
+void ABlasterPlayerState::ManaChanged(const FOnAttributeChangeData& Data)
+{
+    // SetMana(Data.NewValue);
+}
+
+void ABlasterPlayerState::MaxManaChanged(const FOnAttributeChangeData& Data)
+{
+    // SetMaxMana(Data.NewValue);
+}
+
+void ABlasterPlayerState::ManaRegenRateChanged(const FOnAttributeChangeData& Data)
+{
+    // SetManaRegenRate(Data.NewValue);
+}
+
+void ABlasterPlayerState::StaminaChanged(const FOnAttributeChangeData& Data)
+{
+    // SetStamina(Data.NewValue);
+}
+
+void ABlasterPlayerState::MaxStaminaChanged(const FOnAttributeChangeData& Data)
+{
+    // SetMaxStamina(Data.NewValue);
+}
+
+void ABlasterPlayerState::StaminaRegenRateChanged(const FOnAttributeChangeData& Data)
+{
+    // SetStaminaRegenRate(Data.NewValue);
+}
+
+void ABlasterPlayerState::AttackPowerChanged(const FOnAttributeChangeData& Data)
+{
+    // SetAttackPower(Data.NewValue);
+}
+
+void ABlasterPlayerState::AttackSpeedChanged(const FOnAttributeChangeData& Data)
+{
+    // SetAttackSpeed(Data.NewValue);
+}
+
+void ABlasterPlayerState::MoveSpeedChanged(const FOnAttributeChangeData& Data)
+{
+    // SetMoveSpeed(Data.NewValue);
+}
+
+void ABlasterPlayerState::JumpSpeedChanged(const FOnAttributeChangeData& Data)
+{
+    // SetJumpSpeed(Data.NewValue);
+}
+
+#pragma endregion
+
+#pragma region Helper functions
+
+void ABlasterPlayerState::ShowAbilityConfirmCancelText(bool ShowText)
+{
+    // ABlasterPlayerControllerGAS* PC = Cast<ABlasterPlayerControllerGAS>(GetOwner());
+    // if (PC)
+    // {
+    //     PC->ShowAbilityConfirmCancelText(ShowText);
+    // }
+}
+
+#pragma endregion
+
+

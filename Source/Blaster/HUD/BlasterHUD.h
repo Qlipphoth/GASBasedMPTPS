@@ -50,6 +50,15 @@ public:
 
 	void AddElimAnnouncement(FString Attacker, FString Victim);
 
+	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDShield(float Shield, float MaxShield);
+	void SetHUDScore(float Score);
+	void SetHUDDefeats(int32 Defeats);
+	void SetHUDWeaponAmmo(int32 Ammo);
+	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDGrenades(int32 Grenades);
+
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -78,4 +87,5 @@ private:
 
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
+
 };

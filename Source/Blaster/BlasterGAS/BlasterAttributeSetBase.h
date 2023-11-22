@@ -32,7 +32,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, Health)
@@ -63,15 +62,19 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Stamina", ReplicatedUsing = OnRep_MaxStamina)
 	FGameplayAttributeData MaxStamina;
+	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, MaxStamina)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Stamina", ReplicatedUsing = OnRep_StaminaRegenRate)
 	FGameplayAttributeData StaminaRegenRate;
+	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, StaminaRegenRate)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AttackPower)
 	FGameplayAttributeData AttackPower;
+	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, AttackPower)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AttackSpeed)
 	FGameplayAttributeData AttackSpeed;
+	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, AttackSpeed)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Move", ReplicatedUsing = OnRep_MoveSpeed)
 	FGameplayAttributeData MoveSpeed;

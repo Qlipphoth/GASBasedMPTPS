@@ -8,7 +8,8 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/BlasterComponents/LagCompensationComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-
+#include "Blaster/BlasterGAS/BlasterASC.h"
+#include "AbilitySystemComponent.h"
 
 AProjectileBullet::AProjectileBullet()
 {
@@ -46,6 +47,8 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 
 	ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
+	ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
+
 	if (OwnerCharacter)
 	{
 		ABlasterPlayerController* OwnerController = 
@@ -61,21 +64,28 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 					FString("head") ? HeadShotDamage : Damage;
 
 				// TODO: 改为 GAS 计算伤害
-				UGameplayStatics::ApplyDamage(
-					OtherActor, 
-					DamageToCause, 
-					OwnerController, 
-					this, 
-					UDamageType::StaticClass()
-				);
+				// UGameplayStatics::ApplyDamage(
+				// 	OtherActor, 
+				// 	DamageToCause, 
+				// 	OwnerController, 
+				// 	this, 
+				// 	UDamageType::StaticClass()
+				// );
+
+				if (HitCharacter)
+				{
+					UAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
+					if (HitASC)
+					{
+						HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+					}
+				}
 			}
 
 			// 客户端（LocallyControlled）开启了回滚则以客户端发送的回滚请求得到的伤害为准
 			// 否则客户端不会造成伤害
 			if (!OwnerCharacter->HasAuthority() && bUseServerSideRewind)
 			{ 
-				ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
-			
 				if (bUseServerSideRewind && 
 					OwnerCharacter->GetLagCompensation() && 
 					OwnerCharacter->IsLocallyControlled() && 

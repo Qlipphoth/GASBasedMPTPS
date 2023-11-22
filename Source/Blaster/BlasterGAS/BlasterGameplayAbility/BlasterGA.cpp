@@ -17,7 +17,7 @@ void UBlasterGA::OnAvatarSet(const FGameplayAbilityActorInfo * ActorInfo, const 
 {
     Super::OnAvatarSet(ActorInfo, Spec);
 
-    if (ActivateAbilityOnGranted)
+    if (bActivateAbilityOnGranted)
     {
         bool ActivatedAbility = ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle, false);
     }

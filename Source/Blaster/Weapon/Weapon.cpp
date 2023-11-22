@@ -205,30 +205,24 @@ void AWeapon::OnEquipped()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	if (WeaponType == EWeaponType::EWT_SubmachineGun)
-	{
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	}
+
+	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
+
 	// EnableCustomDepth(false);
 
 	// 绑定高 Ping 事件，不使用 Rewind
-	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
-	
-	// FString OwnerName = BlasterOwnerCharacter ? BlasterOwnerCharacter->GetName() : TEXT("nullptr");
-	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Owner: %s"), *OwnerName));
-	
-	// NOTE: 此处可以添加条件：&& bUseServerSideRewind 以保证只有开启了 SSR 的武器才会绑定事件
-	// 但实际上 OnPingTooHigh 也会改变这一参数，因此欠妥，合理的做法是分出两个变量
-	// bInitUseServerSideRewind 和 bUseServerSideRewind，前者用于初始化，后者用于实际使用
-	if (BlasterOwnerCharacter && bInitUseServerSideRewind)
+
+	if (BlasterOwnerCharacter)
 	{
-		BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
-		if (BlasterOwnerController && HasAuthority() && !BlasterOwnerController->HighPingDelegate.IsBound())
+		DamageEffectSpecHandle = BlasterOwnerCharacter->GetDamageEffectSpecHandle();
+		if (bInitUseServerSideRewind)
 		{
-			// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("Bind High Ping Delegate"));
-			BlasterOwnerController->HighPingDelegate.AddDynamic(this, &AWeapon::OnPingTooHigh);
+			BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
+			if (BlasterOwnerController && HasAuthority() && !BlasterOwnerController->HighPingDelegate.IsBound())
+			{
+				// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("Bind High Ping Delegate"));
+				BlasterOwnerController->HighPingDelegate.AddDynamic(this, &AWeapon::OnPingTooHigh);
+			}
 		}
 	}
 }
@@ -245,6 +239,8 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
+	DamageEffectSpecHandle = nullptr;
 
 	// WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	// WeaponMesh->MarkRenderStateDirty();
@@ -268,12 +264,9 @@ void AWeapon::OnEquippedSecondary()
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	if (WeaponType == EWeaponType::EWT_SubmachineGun)
-	{
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	}
+
+	DamageEffectSpecHandle = nullptr;
+
 	// if (WeaponMesh)
 	// {
 	// 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);

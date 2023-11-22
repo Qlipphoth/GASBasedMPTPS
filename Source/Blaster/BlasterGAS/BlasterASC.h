@@ -23,8 +23,8 @@ class BLASTER_API UBlasterASC : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	bool CharacterAbilitiesGiven = false;
-	bool StartupEffectsApplied = false;
+	bool bCharacterAbilitiesGiven = false;
+	bool bStartupEffectsApplied = false;
 
 	FReceivedDamageDelegate ReceivedDamage;
 

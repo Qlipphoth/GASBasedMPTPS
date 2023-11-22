@@ -213,7 +213,7 @@ private:
 	int32 MaxCarriedAmmo = 500;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingARAmmo = 30;
+	int32 StartingARAmmo = 300;
 
 	UPROPERTY(EditAnywhere)
 	int32 StartingRocketAmmo = 5;

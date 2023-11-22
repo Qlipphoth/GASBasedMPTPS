@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon.h"
-#include "../GameplayEnums.h"
+#include "../BlasterTypes/ProjectileType.h"
 #include "ProjectileWeapon.generated.h"
 
 /**

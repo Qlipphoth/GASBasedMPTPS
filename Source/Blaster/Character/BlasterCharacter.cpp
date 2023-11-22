@@ -28,6 +28,10 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/PlayerStart/TeamPlayerStart.h"
+#include "Blaster/BlasterGAS/BlasterASC.h"
+#include "Blaster/BlasterGAS/BlasterAttributeSetBase.h"
+#include "Blaster/BlasterGAS/BlasterGameplayAbility/BlasterGA.h"
+#include "Blaster/BlasterTypes/InputID.h"
 
 
 #pragma region Initialization
@@ -93,11 +97,6 @@ ABlasterCharacter::ABlasterCharacter()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// SpawnDefaultWeapon();
-	UpdateHUDAmmo();
-	UpdateHUDHealth();
-	UpdateHUDShield();
 
 	if (HasAuthority())
 	{
@@ -170,22 +169,6 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
-void ABlasterCharacter::SpawnDefaultWeapon()
-{
-	BlasterGameMode = BlasterGameMode == nullptr ? GetWorld()->
-		GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
-	UWorld* World = GetWorld();
-	if (BlasterGameMode && World && !bElimmed && DefaultWeaponClass)
-	{
-		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
-		StartingWeapon->bDestroyWeapon = true;
-		if (Combat)
-		{
-			Combat->EquipWeapon(StartingWeapon);
-		}
-	}
-}
-
 void ABlasterCharacter::UpdateHUDAmmo()
 {
 	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
@@ -207,7 +190,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	// Component 不需要注册进 ReplicatedProps
 
-	DOREPLIFETIME(ABlasterCharacter, Health);
+	DOREPLIFETIME(ABlasterCharacter, HP);
 	DOREPLIFETIME(ABlasterCharacter, Shield);
 
 	// DOREPLIFETIME_CONDITION(ABlasterCharacter, AO_Yaw, COND_SkipOwner);
@@ -223,7 +206,89 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 
 #pragma endregion
 
-#pragma region Input
+#pragma region Overrides
+
+void ABlasterCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    BlasterPlayerState = BlasterPlayerState == nullptr ? GetPlayerState<ABlasterPlayerState>() : BlasterPlayerState;
+    if (BlasterPlayerState)
+    {
+        // Set the ASC on the Server. Clients do this in OnRep_PlayerState()
+        AbilitySystemComponent = Cast<UBlasterASC>(BlasterPlayerState->GetAbilitySystemComponent());
+        
+        BlasterPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(BlasterPlayerState, this);
+
+        // Set the AttributeSetBase for convenience attribute functions
+        AttributeSetBase = BlasterPlayerState->GetAttributeSetBase();
+
+        // If we handle players disconnecting and rejoining in the future, 
+		// we'll have to change this so that possession from rejoining doesn't reset attributes.
+		// For now assume possession = spawn/respawn.
+		InitializeAttributes();
+
+        AddStartupEffects();
+
+        AddInitialAbilities();
+
+		// Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
+        SetHealth(GetMaxHealth());
+        SetMana(GetMaxMana());
+        SetStamina(GetMaxStamina());
+
+        // HUD
+		BlasterPlayerController = BlasterPlayerController == nullptr ? 
+			Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->CreateHUD();
+		}
+
+        // Float bar
+    }
+}
+
+void ABlasterCharacter::OnRep_PlayerState()
+{
+    Super::OnRep_PlayerState();
+
+    BlasterPlayerState = BlasterPlayerState == nullptr ? GetPlayerState<ABlasterPlayerState>() : BlasterPlayerState;
+    if (BlasterPlayerState)
+    {
+        // Set the ASC for clients. Server does this in PossessedBy.
+        AbilitySystemComponent = Cast<UBlasterASC>(BlasterPlayerState->GetAbilitySystemComponent());
+
+        // Init ASC Actor Info for clients. Server will init its ASC when it possesses a new Actor.
+        BlasterPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(BlasterPlayerState, this);
+
+        // Bind player input to the AbilitySystemComponent. 
+		// Also called in SetupPlayerInputComponent because of a potential race condition.
+        BindASCInput();
+
+        // Set the AttributeSetBase for convenience attribute functions
+        AttributeSetBase = BlasterPlayerState->GetAttributeSetBase();
+
+        // If we handle players disconnecting and rejoining in the future, we'll have to change this so that posession from rejoining doesn't reset attributes.
+		// For now assume possession = spawn/respawn.
+        InitializeAttributes();
+
+		// Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
+		SetHealth(GetMaxHealth());
+		SetMana(GetMaxMana());
+		SetStamina(GetMaxStamina());
+
+        // HUD
+		BlasterPlayerController = BlasterPlayerController == nullptr ? 
+			Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->CreateHUD();
+		}
+
+        // Float bar
+    }
+}
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -245,6 +310,144 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ABlasterCharacter::LookUp);
 
+	BindASCInput();
+}
+
+#pragma endregion
+
+#pragma region GAS
+
+void ABlasterCharacter::BindASCInput()
+{
+    if (!ASCInputBound && AbilitySystemComponent.IsValid() && IsValid(InputComponent))
+    {
+        AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, 
+            FGameplayAbilityInputBinds(
+                FString("ConfirmTarget"),
+                FString("CancelTarget"),
+                FString("EBlasterGAInputID"),
+                static_cast<int32>(EBlasterGAInputID::Confirm),
+                static_cast<int32>(EBlasterGAInputID::Cancel)
+            )
+        );
+    }
+
+    ASCInputBound = true;
+}
+
+UAbilitySystemComponent* ABlasterCharacter::GetAbilitySystemComponent() const
+{
+    return AbilitySystemComponent.Get();
+}
+
+int32 ABlasterCharacter::GetAbilityLevel(EBlasterGAInputID AbilityID) const
+{
+    return 1;
+}
+
+void ABlasterCharacter::RemoveCharacterAbilities()
+{
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || 
+        !AbilitySystemComponent->bCharacterAbilitiesGiven)
+    {
+        return;
+    }
+
+    // Remove any abilities added from a previous call. This checks to make sure the ability is in the startup 'CharacterAbilities' array.
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+    for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+    {
+        if ((Spec.SourceObject == this) && InitialAbilities.Contains(Spec.Ability->GetClass()))
+        {
+            AbilitiesToRemove.Add(Spec.Handle);
+        }
+    }
+
+    // Do in two passes so the removal happens after we have the full list
+    for (int32 i = 0; i < AbilitiesToRemove.Num(); i++)
+	{
+		AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
+	}
+
+	AbilitySystemComponent->bCharacterAbilitiesGiven = false;
+}
+
+void ABlasterCharacter::AddInitialAbilities()
+{
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || 
+        AbilitySystemComponent->bCharacterAbilitiesGiven)
+    {
+        return;
+    }
+
+    // Grant abilities, but only on the server	
+    for (TSubclassOf<UBlasterGA>& StartupAbility : InitialAbilities)
+    {
+        AbilitySystemComponent->GiveAbility(
+            FGameplayAbilitySpec(
+                StartupAbility, 
+                GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityID),
+                static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID),
+                this
+            )
+        );
+    }
+
+    AbilitySystemComponent->bCharacterAbilitiesGiven = true;
+}
+
+void ABlasterCharacter::InitializeAttributes()
+{
+    if (!AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+
+	if (!InitialAttributes)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No InitialAttributes set for %s. Please set in Blueprint."), *GetName());
+        return;
+    }
+
+    // Can run on Server and Client
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+    FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(
+        InitialAttributes, 1, EffectContext);
+
+    if (NewHandle.IsValid())
+    {
+        FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->
+            ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+    }
+}
+
+void ABlasterCharacter::AddStartupEffects()
+{
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || 
+        AbilitySystemComponent->bStartupEffectsApplied)
+    {
+        return;
+    }
+
+    FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+    // Apply startup gameplay effects to actor
+    for (TSubclassOf<UGameplayEffect>& StartupEffect : StartupEffects)
+    {
+        FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(
+            StartupEffect, 1, EffectContext);
+
+        if (NewHandle.IsValid())
+        {
+            FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->
+                ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+        }
+    }
+
+    AbilitySystemComponent->bStartupEffectsApplied = true;
 }
 
 #pragma endregion
@@ -485,7 +688,7 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 
 void ABlasterCharacter::PlaySwapMontage()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
 	if (AnimInstance && SwapMontage)
 	{
 		AnimInstance->Montage_Play(SwapMontage);
@@ -518,7 +721,7 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
 	if (AnimInstance && FireWeaponMontage)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
@@ -642,7 +845,7 @@ void ABlasterCharacter::PlayReloadMontage()
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
 	if (AnimInstance && ReloadMontage)
 	{
 		AnimInstance->Montage_Play(ReloadMontage);
@@ -691,7 +894,7 @@ void ABlasterCharacter::GrenadeButtonPressed()
 
 void ABlasterCharacter::PlayThrowGrenadeMontage()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
 	if (AnimInstance && ThrowGrenadeMontage)
 	{
 		AnimInstance->Montage_Play(ThrowGrenadeMontage);
@@ -702,11 +905,10 @@ void ABlasterCharacter::PlayThrowGrenadeMontage()
 
 #pragma region Health
 
-
 void ABlasterCharacter::OnRep_Health(float LastHealth)
 {
 	UpdateHUDHealth();
-	if (Health < LastHealth)
+	if (HP < LastHealth)
 	{
 		PlayHitReactMontage();  // 受击动画同步到客户端
 	}
@@ -718,7 +920,7 @@ void ABlasterCharacter::UpdateHUDHealth()
 		Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 	if (BlasterPlayerController)
 	{
-		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+		BlasterPlayerController->SetHUDHealth(HP, MaxHP);
 	}
 }
 
@@ -774,14 +976,14 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 		}
 	}
 
-	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+	HP = FMath::Clamp(HP - DamageToHealth, 0.f, MaxHP);
 
 	UpdateHUDHealth();
 	UpdateHUDShield();
 
 	PlayHitReactMontage();  // 服务器端播放受击动画
 
-	if (Health == 0.f)
+	if (HP == 0.f)
 	{
 		// GetAuthGameMode() : Returns the current Game Mode instance cast to the template type.
 		// This can only return a valid pointer on the server and may be null if the cast fails. 
@@ -797,15 +999,15 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 	}
 }
 
-void ABlasterCharacter::PlayHitReactMontage()
+void ABlasterCharacter::PlayHitReactMontage_Implementation()
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HitReactMontage)
 	{
 		AnimInstance->Montage_Play(HitReactMontage);
-		FName SectionName("FromFront");
-		AnimInstance->Montage_JumpToSection(SectionName);
+		AnimInstance->Montage_JumpToSection(FName("FromFront"));
 	}
 }
 
@@ -942,7 +1144,7 @@ void ABlasterCharacter::ServerLeaveGame_Implementation()
 
 void ABlasterCharacter::PlayElimMontage()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
 	if (AnimInstance && ElimMontage)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
@@ -1002,14 +1204,6 @@ void ABlasterCharacter::SetHitBoxes()
 	// head1->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitCollisionBoxes.Add(FName("head"), head1);	
 
-	// spine_01 = CreateDefaultSubobject<USphereComponent>(TEXT("spine_01"));
-	// spine_01->SetupAttachment(GetMesh(), FName("spine_01"));
-	// spine_01->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	// spine1_02 = CreateDefaultSubobject<USphereComponent>(TEXT("spine_02"));
-	// spine1_02->SetupAttachment(GetMesh(), FName("spine_02"));
-	// spine1_02->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	spine_03 = CreateDefaultSubobject<USphereComponent>(TEXT("spine_03"));
 	spine_03->SetupAttachment(GetMesh(), FName("spine_03"));
 	// spine_03->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -1030,78 +1224,156 @@ void ABlasterCharacter::SetHitBoxes()
 			Box.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}
+}
 
-	// head = CreateDefaultSubobject<UBoxComponent>(TEXT("head"));
-	// head->SetupAttachment(GetMesh(), FName("head"));
-	// head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+#pragma endregion
 
-	// pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("pelvis"));
-	// pelvis->SetupAttachment(GetMesh(), FName("pelvis"));
-	// pelvis->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+#pragma region Getters and Setters
 
-	// spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_02"));
-	// spine_02->SetupAttachment(GetMesh(), FName("spine_02"));
-	// spine_02->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetHealth() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetHealth();
+    }
 
-	// spine_03 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_03"));
-	// spine_03->SetupAttachment(GetMesh(), FName("spine_03"));
-	// spine_03->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_l"));
-	// upperarm_l->SetupAttachment(GetMesh(), FName("upperarm_l"));
-	// upperarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetMaxHealth() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMaxHealth();
+    }
 
-	// upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_r"));
-	// upperarm_r->SetupAttachment(GetMesh(), FName("upperarm_r"));
-	// upperarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_l"));
-	// lowerarm_l->SetupAttachment(GetMesh(), FName("lowerarm_l"));
-	// lowerarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetMana() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMana();
+    }
 
-	// lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_r"));
-	// lowerarm_r->SetupAttachment(GetMesh(), FName("lowerarm_r"));
-	// lowerarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_l"));
-	// hand_l->SetupAttachment(GetMesh(), FName("hand_l"));
-	// hand_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetMaxMana() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMaxMana();
+    }
 
-	// hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_r"));
-	// hand_r->SetupAttachment(GetMesh(), FName("hand_r"));
-	// hand_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// blanket = CreateDefaultSubobject<UBoxComponent>(TEXT("blanket"));
-	// blanket->SetupAttachment(GetMesh(), FName("backpack"));
-	// blanket->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetStamina() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetStamina();
+    }
 
-	// backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("backpack"));
-	// backpack->SetupAttachment(GetMesh(), FName("backpack"));
-	// backpack->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_l"));
-	// thigh_l->SetupAttachment(GetMesh(), FName("thigh_l"));
-	// thigh_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetMaxStamina() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMaxStamina();
+    }
 
-	// thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_r"));
-	// thigh_r->SetupAttachment(GetMesh(), FName("thigh_r"));
-	// thigh_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// calf_l = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_l"));
-	// calf_l->SetupAttachment(GetMesh(), FName("calf_l"));
-	// calf_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetAttackPower() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetAttackPower();
+    }
 
-	// calf_r = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_r"));
-	// calf_r->SetupAttachment(GetMesh(), FName("calf_r"));
-	// calf_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
 
-	// foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_l"));
-	// foot_l->SetupAttachment(GetMesh(), FName("foot_l"));
-	// foot_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+float ABlasterCharacter::GetAttackSpeed() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetAttackSpeed();
+    }
 
-	// foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_r"));
-	// foot_r->SetupAttachment(GetMesh(), FName("foot_r"));
-	// foot_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    return 0.0f;
+}
+
+float ABlasterCharacter::GetMoveSpeed() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMoveSpeed();
+    }
+
+    return 0.0f;
+}
+
+float ABlasterCharacter::GetMoveSpeedBaseValue() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetMoveSpeedAttribute().
+            GetGameplayAttributeData(AttributeSetBase.Get())->GetBaseValue();
+    }
+
+    return 0.0f;
+}
+
+float ABlasterCharacter::GetJumpSpeed() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetJumpSpeed();
+    }
+
+    return 0.0f;
+}
+
+float ABlasterCharacter::GetJumpSpeedBaseValue() const
+{
+    if (AttributeSetBase.IsValid())
+    {
+        return AttributeSetBase->GetJumpSpeedAttribute().
+            GetGameplayAttributeData(AttributeSetBase.Get())->GetBaseValue();
+    }
+
+    return 0.0f;
+}
+
+void ABlasterCharacter::SetHealth(float Health)
+{
+    if (AttributeSetBase.IsValid())
+    {
+        AttributeSetBase->SetHealth(Health);
+    }
+}
+
+void ABlasterCharacter::SetMana(float Mana)
+{
+    if (AttributeSetBase.IsValid())
+    {
+        AttributeSetBase->SetMana(Mana);
+    }
+}
+
+void ABlasterCharacter::SetStamina(float Stamina)
+{
+    if (AttributeSetBase.IsValid())
+    {
+        AttributeSetBase->SetStamina(Stamina);
+    }
 }
 
 #pragma endregion

@@ -9,6 +9,7 @@
 #include "Components/HorizontalBox.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Engine/Texture2D.h"
 
 void ABlasterHUD::BeginPlay()
 {
@@ -153,3 +154,63 @@ void ABlasterHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
 		MsgToRemove->RemoveFromParent();
 	}
 }
+
+void ABlasterHUD::SetHUDHealth(float Health, float MaxHealth)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
+void ABlasterHUD::SetHUDShield(float Shield, float MaxShield)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDShield(Shield, MaxShield);
+	}
+}
+
+void ABlasterHUD::SetHUDScore(float Score)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDScore(Score);
+	}
+}
+
+void ABlasterHUD::SetHUDDefeats(int32 Defeats)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDDefeats(Defeats);
+	}
+}
+
+void ABlasterHUD::SetHUDWeaponAmmo(int32 Ammo)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDWeaponAmmo(Ammo);
+	}
+}
+
+void ABlasterHUD::SetHUDCarriedAmmo(int32 Ammo)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDCarriedAmmo(Ammo);
+	}
+}
+
+void ABlasterHUD::SetHUDGrenades(int32 Grenades)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHUDGrenades(Grenades);
+	}
+}
+
+
+
+
