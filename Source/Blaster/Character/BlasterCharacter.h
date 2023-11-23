@@ -160,7 +160,20 @@ protected:
 	// 会让 Server 上的 Controller->Pawn 也变成无敌，因此逻辑不会有问题。
 	bool bInvincible = false;
 
+	// 用于造成伤害的 GE
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+
+	//============================= UI =============================//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TSubclassOf<class UFloatStatusBarWidget> FloatingStatusBarClass;
+
+	UPROPERTY()
+	class UFloatStatusBarWidget* FloatingStatusBar;
+
+	UFUNCTION()
+	void InitializeFloatingStatusBar();
+
 
 private:
 
@@ -186,23 +199,24 @@ private:
 	* Blaster components
 	*/
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = "Components|Camera")
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = "Components|Camera")
 	class UCameraComponent* FollowCamera;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Components|Widget")
 	class UWidgetComponent* OverheadWidget;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Components|Combat")
 	class UCombatComponent* Combat;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components|Combat")
 	class UBuffComponent* Buff;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components|Combat")
 	class ULagCompensationComponent* LagCompensation;
+
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -392,6 +406,8 @@ public:	// Getter & Setter
 
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
+
+	FORCEINLINE class UFloatStatusBarWidget* GetFloatingStatusBar() const { return FloatingStatusBar; }
 
 public:
 	/**

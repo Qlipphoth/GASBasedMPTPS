@@ -102,14 +102,6 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 
 void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams)
 {	
-	// Pass the damage to the Damage Execution Calculation through a SetByCaller value 
-	// on the GameplayEffectSpec
-
-	if (DamageEffectSpecHandle != nullptr)
-	{
-		DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
-			FGameplayTag::RequestGameplayTag(FName("Data.Damage")), Damage);
-	}
 
 	for (uint32 i = 0; i < NumberOfPellets; ++i)
 	{
@@ -133,6 +125,8 @@ void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToS
 
 		SpawnedProjectile->Damage = Damage;
 		SpawnedProjectile->HeadShotDamage = HeadShotDamage;
+
+		// Pass the DamageEffectSpecHandle to the Projectile
 		SpawnedProjectile->DamageEffectSpecHandle = DamageEffectSpecHandle;
 
 		// 将 Projectile 的 bUseServerSideRewind 设置为 Weapon 的 bUseServerSideRewind

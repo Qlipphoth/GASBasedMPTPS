@@ -4,6 +4,7 @@
 #include "BlasterPlayerState.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "Blaster/HUD/FloatStatusBarWidget.h"
 #include "Blaster/BlasterGAS/BlasterASC.h"
 #include "Blaster/BlasterGAS/BlasterAttributeSetBase.h"
 #include "Blaster/BlasterTypes/InputID.h"
@@ -247,24 +248,46 @@ float ABlasterPlayerState::GetJumpSpeed() const
 
 void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
-    // SetHealth(Data.NewValue);
-
-	// HUD
+    float Health = Data.NewValue;
 	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+
+	// Status Bar & HUD
 	if (Character)
 	{
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetHealthPercentage(Health / GetMaxHealth());
+		}
+
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 		if (Controller)
 		{
-            Controller->SetHUDHealth(GetHealth(), GetMaxHealth());
+            Controller->SetHUDHealth(Health, GetMaxHealth());
 		}
 	}
-
 }
 
 void ABlasterPlayerState::MaxHealthChanged(const FOnAttributeChangeData& Data)
 {
-    // SetMaxHealth(Data.NewValue);
+    float MaxHealth = Data.NewValue;
+	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+
+	// Status Bar & HUD
+	if (Character)
+	{
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetHealthPercentage(GetHealth() / MaxHealth);
+		}
+
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDHealth(GetHealth(), MaxHealth);
+		}
+	}
 }
 
 void ABlasterPlayerState::HealthRegenRateChanged(const FOnAttributeChangeData& Data)

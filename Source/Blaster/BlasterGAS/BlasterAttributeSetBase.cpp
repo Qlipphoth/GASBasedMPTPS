@@ -84,8 +84,6 @@ void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectMo
 
         if (LocalDamageDone > 0.f)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage > 0"));
-
             // Apply the health change and then clamp it
             const float OldHealth = GetHealth();
             SetHealth(FMath::Clamp(OldHealth - LocalDamageDone, 0.0f, GetMaxHealth()));

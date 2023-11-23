@@ -63,14 +63,12 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 				const float DamageToCause = Hit.BoneName.ToString() == 
 					FString("head") ? HeadShotDamage : Damage;
 
-				// TODO: 改为 GAS 计算伤害
-				// UGameplayStatics::ApplyDamage(
-				// 	OtherActor, 
-				// 	DamageToCause, 
-				// 	OwnerController, 
-				// 	this, 
-				// 	UDamageType::StaticClass()
-				// );
+				// Pass the damage to the Damage Execution Calculation through a SetByCaller value on the GameplayEffectSpec
+				if (DamageEffectSpecHandle != nullptr)
+				{
+					DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+						FGameplayTag::RequestGameplayTag(FName("Data.Damage")), DamageToCause);
+				}
 
 				if (HitCharacter)
 				{

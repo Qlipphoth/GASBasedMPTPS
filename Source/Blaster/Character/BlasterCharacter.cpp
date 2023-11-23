@@ -32,6 +32,7 @@
 #include "Blaster/BlasterGAS/BlasterAttributeSetBase.h"
 #include "Blaster/BlasterGAS/BlasterGameplayAbility/BlasterGA.h"
 #include "Blaster/BlasterTypes/InputID.h"
+#include "Blaster/HUD/FloatStatusBarWidget.h"
 
 
 #pragma region Initialization
@@ -109,6 +110,11 @@ void ABlasterCharacter::BeginPlay()
 	}
 
 	bInvincible	= false;
+
+	// Only needed for Heroes placed in world and when the player is the Server.
+	// On respawn, they are set up in PossessedBy.
+	// When the player a client, the floating status bars are all set up in OnRep_PlayerState.
+	InitializeFloatingStatusBar();
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -245,7 +251,7 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 			BlasterPlayerController->CreateHUD();
 		}
 
-        // Float bar
+        InitializeFloatingStatusBar();
     }
 }
 
@@ -286,7 +292,8 @@ void ABlasterCharacter::OnRep_PlayerState()
 			BlasterPlayerController->CreateHUD();
 		}
 
-        // Float bar
+		// Simulated on proxies don't have their PlayerStates yet when BeginPlay is called so we call it again here
+		InitializeFloatingStatusBar();
     }
 }
 
@@ -945,6 +952,37 @@ void ABlasterCharacter::OnRep_Shield(float LastShield)
 	if (Shield < LastShield)
 	{
 		PlayHitReactMontage();
+	}
+}
+
+#pragma endregion
+
+#pragma region UI
+
+void ABlasterCharacter::InitializeFloatingStatusBar()
+{
+	// Only create once
+	if (FloatingStatusBar || !AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+
+	// Setup UI for Locally Owned Players only, not AI or the server's copy of the PlayerControllers
+	ABlasterPlayerController* PC = Cast<ABlasterPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PC && PC->IsLocalPlayerController())
+	{
+		if (FloatingStatusBarClass)
+		{
+			FloatingStatusBar = CreateWidget<UFloatStatusBarWidget>(PC, FloatingStatusBarClass);
+			if (FloatingStatusBar && OverheadWidget)
+			{
+				OverheadWidget->SetWidget(FloatingStatusBar);
+
+				// Setup the floating status bar
+				FloatingStatusBar->SetHealthPercentage(GetHealth() / GetMaxHealth());
+				// FloatingStatusBar->SetShieldPercentage(GetShield() / GetMaxShield());
+			}
+		}
 	}
 }
 
