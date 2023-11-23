@@ -12,6 +12,8 @@
 #include "Blaster/Blaster.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -58,6 +60,15 @@ void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
+
+
+void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AProjectile, ProjectileType);
+}
+
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
@@ -125,27 +136,7 @@ void AProjectile::SpawnHitImpact()
 
 void AProjectile::ExplodeDamage()
 {
-	APawn* FiringPawn = GetInstigator();
-	if (FiringPawn && HasAuthority())
-	{
-		AController* FiringController = FiringPawn->GetController();
-		if (FiringController)
-		{
-			UGameplayStatics::ApplyRadialDamageWithFalloff(
-				this, // World context object
-				Damage, // BaseDamage
-				10.f, // MinimumDamage
-				GetActorLocation(), // Origin
-				DamageInnerRadius, // DamageInnerRadius
-				DamageOuterRadius, // DamageOuterRadius
-				1.f, // DamageFalloff
-				UDamageType::StaticClass(), // DamageTypeClass
-				TArray<AActor*>(), // IgnoreActors
-				this, // DamageCauser
-				FiringController // InstigatorController
-			);
-		}
-	}
+	
 }
 
 void AProjectile::DeactivateProjectile()

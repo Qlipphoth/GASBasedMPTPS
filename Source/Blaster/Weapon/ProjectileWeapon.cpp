@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Projectile.h"
+#include "Net/UnrealNetwork.h"
 #include "Blaster/BlasterTypes/ProjectileType.h"
 
 void AProjectileWeapon::BeginPlay()
@@ -13,6 +14,13 @@ void AProjectileWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	ProjectileType = InitProjectileType;
+}
+
+void AProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AProjectileWeapon, ProjectileType);
 }
 
 void AProjectileWeapon::Fire(const FVector& HitTarget)
@@ -100,7 +108,8 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 }
 
 
-void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams)
+void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector& SpawnLocation, 
+	FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams)
 {	
 
 	for (uint32 i = 0; i < NumberOfPellets; ++i)
@@ -178,4 +187,9 @@ void AProjectileWeapon::Reload()
 	{
 		WeaponAnimInstance->Montage_Play(WeaponReloadMontage);
 	}
+}
+
+void AProjectileWeapon::OnRep_ProjectileType()
+{
+
 }

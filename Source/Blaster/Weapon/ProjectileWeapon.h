@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon.h"
+#include "Engine/World.h"
 #include "../BlasterTypes/ProjectileType.h"
 #include "ProjectileWeapon.generated.h"
 
@@ -18,6 +19,8 @@ class BLASTER_API AProjectileWeapon : public AWeapon
 public:
 	virtual void Fire(const FVector& HitTarget) override;
 	virtual void Reload() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -43,10 +46,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
 	EProjectileType InitProjectileType = EProjectileType::EPT_Normal;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon|Projectile")
+	UPROPERTY(ReplicatedUsing = OnRep_ProjectileType, VisibleAnywhere, Category = "Weapon|Projectile")
 	EProjectileType ProjectileType;
 
-	void SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector3d& SpawnLocation, FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams);
+	UFUNCTION()
+	void OnRep_ProjectileType();
+
+	void SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector3d& SpawnLocation, 
+		FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams);
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Animation")
 	class UAnimMontage* WeaponFireMontage;

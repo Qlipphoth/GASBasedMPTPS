@@ -9,7 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Blaster/Blaster.h"
-
+#include "AbilitySystemComponent.h"
 
 #pragma region Initialization
 
@@ -555,17 +555,25 @@ void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(
 
 	if (Character && HitCharacter && Confirm.bHitConfirmed && Character->GetEquippedWeapon())
 	{
-		const float Damage = Confirm.bHeadShot ? Character->GetEquippedWeapon()->
+		const float DamageToCause = Confirm.bHeadShot ? Character->GetEquippedWeapon()->
 			GetHeadShotDamage() : Character->GetEquippedWeapon()->GetDamage();
 
-		UGameplayStatics::ApplyDamage(
-			HitCharacter,
-			// 回滚造成的伤害依然是以服务器的版本来计算的
-			Damage,
-			Character->Controller,
-			Character->GetEquippedWeapon(),
-			UDamageType::StaticClass()
-		);
+		FGameplayEffectSpecHandle DamageEffectSpecHandle = Character->GetDamageEffectSpecHandle();
+		// Pass the damage to the Damage Execution Calculation through a SetByCaller value on the GameplayEffectSpec
+		if (DamageEffectSpecHandle != nullptr)
+		{
+			DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+				FGameplayTag::RequestGameplayTag(FName("Data.Damage")), DamageToCause);
+		}
+
+		if (HitCharacter)
+		{
+			UAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
+			if (HitASC)
+			{
+				HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+			}
+		}
 	}
 }
 

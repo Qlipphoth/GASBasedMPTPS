@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Blaster/BlasterTypes/ProjectileType.h"
 #include "GameplayEffect.h"
+#include "Curves/CurveFloat.h"
 #include "Projectile.generated.h"
 
 USTRUCT(BlueprintType)
@@ -31,6 +32,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* CollisionBox;
 
@@ -44,7 +47,7 @@ public:
 	// 精确到小数点后两位
 	FVector_NetQuantize100 InitialVelocity;
 
-	UPROPERTY(EditAnywhere, Category = "Properties|ProjectileType")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Properties|ProjectileType")
 	EProjectileType ProjectileType = EProjectileType::EPT_Normal;
 
 	UPROPERTY(EditAnywhere, Category = "Properties|Movement")
@@ -58,6 +61,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	float HeadShotDamage = 40.f;
 
+	// Only set this for Grenades and Rockets
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage|Explosion")
+	float DamageRadius = 500.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage|Explosion")
+	UCurveFloat* DamageFalloffCurve;
+
 	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
@@ -69,11 +79,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void InitVFXComponents();
-	
+
 	void SpawnTrailSystem();
 	void SpawnHitImpact();
-	void ExplodeDamage();
+	
+	virtual void ExplodeDamage();
 
 	UFUNCTION()
 	virtual void OnHit(
@@ -100,12 +110,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SFXs")
 	class USoundCue* ImpactSound;
 
-	UPROPERTY(EditAnywhere, Category = "Damage|Range")
-	float DamageInnerRadius = 200.f;
-
-	UPROPERTY(EditAnywhere, Category = "Damage|Range")
-	float DamageOuterRadius = 500.f;
-
 protected:
 	UPROPERTY()
 	class UNiagaraComponent* ImpactSystemComponent;
@@ -121,6 +125,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* ProjectileMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	class USphereComponent* DamageSphere;
 
 	void DeactivateProjectile();
 

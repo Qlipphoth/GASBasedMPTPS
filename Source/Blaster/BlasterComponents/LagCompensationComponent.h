@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayEffect.h"
 #include "LagCompensationComponent.generated.h"
 
 USTRUCT(BlueprintType)

@@ -19,6 +19,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void ExplodeDamage() override;
+
 	virtual void StartDeActivateTimer() override;
 	virtual void DeActivateTimerFinished() override;
 

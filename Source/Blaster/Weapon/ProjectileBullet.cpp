@@ -89,7 +89,6 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 					OwnerCharacter->IsLocallyControlled() && 
 					HitCharacter)
 				{
-					// TODO: 改为 GAS 计算伤害
 					OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(
 						HitCharacter,
 						TraceStart,

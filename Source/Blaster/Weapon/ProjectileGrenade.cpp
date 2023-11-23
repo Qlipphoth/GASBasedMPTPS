@@ -7,6 +7,9 @@
 #include "Sound/SoundCue.h"
 #include "Components/BoxComponent.h"
 #include "NiagaraComponent.h"
+#include "Blaster/Character/BlasterCharacter.h"
+#include "AbilitySystemComponent.h"
+#include "Components/SphereComponent.h"
 
 AProjectileGrenade::AProjectileGrenade()
 {
@@ -17,6 +20,12 @@ AProjectileGrenade::AProjectileGrenade()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->SetIsReplicated(true);
 	ProjectileMovementComponent->bShouldBounce = true;
+
+	DamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DamageSphere"));
+	DamageSphere->SetupAttachment(RootComponent);
+	DamageSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	DamageSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	DamageSphere->SetSphereRadius(DamageRadius);
 }
 
 void AProjectileGrenade::BeginPlay()
@@ -45,6 +54,36 @@ void AProjectileGrenade::OnBounce(const FHitResult& ImpactResult, const FVector&
 	}
 }
 
+void AProjectileGrenade::ExplodeDamage()
+{
+	// 遍历 DamageSphere 内的所有 BlasterCharacter，造成伤害
+	TArray<AActor*> OverlappingActors;
+	DamageSphere->GetOverlappingActors(OverlappingActors, ABlasterCharacter::StaticClass());
+	for (AActor* Actor : OverlappingActors)
+	{
+		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(Actor);
+		if (HitCharacter)
+		{
+			float NormalizedDistance = FVector::Distance(HitCharacter->GetActorLocation(), GetActorLocation()) / DamageRadius;
+			float DamageToCause = DamageFalloffCurve->GetFloatValue(NormalizedDistance) * Damage;
+
+			// Pass the damage to the Damage Execution Calculation through a SetByCaller value on the GameplayEffectSpec
+			// 注：ExplodeDamge 不考虑 HeadShot
+			if (DamageEffectSpecHandle != nullptr)
+			{
+				DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+					FGameplayTag::RequestGameplayTag(FName("Data.Damage")), DamageToCause);
+			}
+
+			UAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
+			if (HitASC)
+			{
+				HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+			}
+		}
+	}
+}
+
 void AProjectileGrenade::StartDeActivateTimer()
 {
 	GetWorldTimerManager().SetTimer(
@@ -59,7 +98,11 @@ void AProjectileGrenade::DeActivateTimerFinished()
 {
 	if (bShouldExplode)
 	{
-		ExplodeDamage();
+		if (HasAuthority())
+		{
+			ExplodeDamage();
+		}
+
 		SpawnHitImpact();
 		DeactivateProjectile();
 	}

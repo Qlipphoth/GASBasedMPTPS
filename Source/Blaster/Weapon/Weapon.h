@@ -231,7 +231,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon|SSR")
 	bool bInitUseServerSideRewind = false;
 
-	UPROPERTY(Replicated, visibleAnywhere, Category = "Weapon")
+	UPROPERTY(Replicated, visibleAnywhere, Category = "Weapon|SSR")
 	bool bUseServerSideRewind = false;
 
 public:

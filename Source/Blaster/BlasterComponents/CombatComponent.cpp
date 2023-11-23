@@ -822,11 +822,10 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 {
 	if (WeaponToEquip == nullptr) return;
 	SecondaryWeapon = WeaponToEquip;
+	SecondaryWeapon->SetOwner(Character);
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	AttachActorToBackpack(WeaponToEquip);
-
 	PlayEquipWeaponSound(WeaponToEquip);
-	SecondaryWeapon->SetOwner(Character);
 
 	// Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	// Character->bUseControllerRotationYaw = true;

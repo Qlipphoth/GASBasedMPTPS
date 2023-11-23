@@ -211,7 +211,6 @@ void AWeapon::OnEquipped()
 	// EnableCustomDepth(false);
 
 	// 绑定高 Ping 事件，不使用 Rewind
-
 	if (BlasterOwnerCharacter)
 	{
 		DamageEffectSpecHandle = BlasterOwnerCharacter->GetDamageEffectSpecHandle();
