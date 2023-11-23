@@ -6,6 +6,8 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
+#include "Blaster/GameMode/BlasterGameMode.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 UBlasterAttributeSetBase::UBlasterAttributeSetBase()
@@ -84,18 +86,46 @@ void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectMo
 
         if (LocalDamageDone > 0.f)
         {
+            // If character was alive before damage is added, handle damage
+			// This prevents damage being added to dead things and replaying death animations
+			bool WasAlive = true;
+
+			if (TargetCharacter)
+			{
+				WasAlive = TargetCharacter->IsAlive();
+			}
+
             // Apply the health change and then clamp it
             const float OldHealth = GetHealth();
             SetHealth(FMath::Clamp(OldHealth - LocalDamageDone, 0.0f, GetMaxHealth()));
 
-            // PlayHitReact, this is a NetMulticast RPC so it will run on both the server and clients
-            TargetCharacter->PlayHitReactMontage();
+            if (TargetCharacter && WasAlive)
+            {
+                // PlayHitReact, this is a NetMulticast RPC so it will run on both the server and clients
+                TargetCharacter->PlayHitReactMontage();
 
-            // Show damage number
-            TargetCharacter->ShowDamageNumber(LocalDamageDone);
+                // Show damage number
+                TargetCharacter->ShowDamageNumber(LocalDamageDone);
+
+                if (!TargetCharacter->IsAlive())
+                {
+                    // TargetCharacter was alive before this damage and now is not alive
+                    BlasterGameMode = BlasterGameMode == nullptr ? GetWorld()->
+		                GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
+
+                    if (BlasterGameMode)
+                    {
+                        // Tell the game mode the character was eliminated
+                        BlasterGameMode->PlayerEliminated(
+                            TargetCharacter, 
+                            Cast<ABlasterPlayerController>(TargetController), 
+                            Cast<ABlasterPlayerController>(SourceController)
+                        );
+                    }
+                }
+            }
         }
     }
-
 }
 
 #pragma endregion

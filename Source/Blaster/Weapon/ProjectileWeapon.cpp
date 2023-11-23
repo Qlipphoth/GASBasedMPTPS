@@ -27,6 +27,9 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
 
+
+	ProjectileType = TEnumAsByte<EProjectileType>(FMath::RandRange(0, 3));
+
 	// Weapon 被设置为了 Replicate，所以只有服务器端才能发射子弹
 	// 但 Projectile 也被设置为了 Replicate，所以服务器端生成的 Projectile 会被复制到客户端
 	// if (!HasAuthority()) return;

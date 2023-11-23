@@ -388,7 +388,7 @@ public:	// Getter & Setter
 	FORCEINLINE float GetShield() const { return Shield; }
 	FORCEINLINE void SetShield(float Amount) { Shield = Amount; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
-	
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FGameplayEffectSpecHandle GetDamageEffectSpecHandle() const { return DamageEffectSpecHandle; }
 	
@@ -422,6 +422,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetMaxHealth() const;
+
+	bool IsAlive() const { return GetHealth() > 0.f; }
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetMana() const;

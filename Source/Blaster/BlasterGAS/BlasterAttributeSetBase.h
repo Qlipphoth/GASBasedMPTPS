@@ -31,6 +31,9 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	class ABlasterGameMode* BlasterGameMode;
+
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
@@ -140,5 +143,4 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_JumpSpeed(const FGameplayAttributeData& OldJumpSpeed);
-
 };
