@@ -91,8 +91,8 @@ void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectMo
             // PlayHitReact, this is a NetMulticast RPC so it will run on both the server and clients
             TargetCharacter->PlayHitReactMontage();
 
-            // Show damage number for the Source player unless it was self damage
-            
+            // Show damage number
+            TargetCharacter->ShowDamageNumber(LocalDamageDone);
         }
     }
 

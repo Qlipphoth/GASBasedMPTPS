@@ -80,10 +80,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 				if (InstigatorPawn->IsLocallyControlled()) 
 				{
 					SpawnProjectiles(ServerSideRewindProjectileClass, MuzzleLocation, TargetRotation, SpawnParams);
-					
-					// 这里设置 Damage 实际上并不能起到作用，计算伤害使用 Server 端的数据
-					// SpawnedProjectile->Damage = Damage;
-					// SpawnedProjectile->bUseServerSideRewind = true;
+					// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Client Spawn SSR Projectile"));
 				}
 				// 客户端的其他角色，不需要 SSR，生成本地的 Projectile 即可
 				else 

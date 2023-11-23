@@ -53,9 +53,10 @@ public:
 	void PlayHitReactMontage();
 	void PlayHitReactMontage_Implementation();
 
-	// 使用 Replicate 代替了 RPC
-	// UFUNCTION(NetMulticast, Unreliable)
-	// void MulticastHit();
+	UFUNCTION(NetMulticast, Unreliable)
+	void ShowDamageNumber(float DamageAmount);
+	void ShowDamageNumber_Implementation(float DamageAmount);
+
 
 	virtual void OnRep_ReplicatedMovement() override;
 	
@@ -174,6 +175,8 @@ protected:
 	UFUNCTION()
 	void InitializeFloatingStatusBar();
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UDamageTextWidgetCompotent> DamageTextWidgetClass;
 
 private:
 

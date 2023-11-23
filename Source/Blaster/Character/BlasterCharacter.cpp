@@ -33,7 +33,7 @@
 #include "Blaster/BlasterGAS/BlasterGameplayAbility/BlasterGA.h"
 #include "Blaster/BlasterTypes/InputID.h"
 #include "Blaster/HUD/FloatStatusBarWidget.h"
-
+#include "Blaster/HUD/DamageTextWidgetCompotent.h"
 
 #pragma region Initialization
 
@@ -983,6 +983,19 @@ void ABlasterCharacter::InitializeFloatingStatusBar()
 				// FloatingStatusBar->SetShieldPercentage(GetShield() / GetMaxShield());
 			}
 		}
+	}
+}
+
+void ABlasterCharacter::ShowDamageNumber_Implementation(float DamageAmount)
+{
+	UDamageTextWidgetCompotent* DamageTextWidgetComponent = 
+		NewObject<UDamageTextWidgetCompotent>(this, DamageTextWidgetClass);
+
+	if (DamageTextWidgetComponent)
+	{
+		DamageTextWidgetComponent->RegisterComponent();
+		DamageTextWidgetComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		DamageTextWidgetComponent->SetDamageText(DamageAmount);
 	}
 }
 
