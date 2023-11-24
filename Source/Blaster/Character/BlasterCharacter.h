@@ -12,6 +12,7 @@
 #include "Blaster/BlasterTypes/InputID.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayEffect.h"
+#include "Blaster/BlasterTypes/ProjectileType.h"
 #include "BlasterCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
@@ -157,6 +158,7 @@ protected:
 	// Poll for any relelvant classes and initialize our HUD
 	void PollInit();
 
+
 	// Invicible 不需要同步，因为打击判定是在服务器上进行的，通过 Controller 设置该参数
 	// 会让 Server 上的 Controller->Pawn 也变成无敌，因此逻辑不会有问题。
 	bool bInvincible = false;
@@ -195,6 +197,9 @@ private:
 
 	UPROPERTY()
 	class ABlasterGameMode* BlasterGameMode;
+
+	UPROPERTY()
+	class ABlasterGameState* BlasterGameState;
 
 	//*****************************************************************************************//
 
@@ -410,7 +415,10 @@ public:	// Getter & Setter
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
 
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class UFloatStatusBarWidget* GetFloatingStatusBar() const { return FloatingStatusBar; }
+
+	void SetFloatingStatusBarVisibility(bool Visible);
 
 public:
 	/**
@@ -442,6 +450,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetAttackSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetDamageType() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetMoveSpeed() const;

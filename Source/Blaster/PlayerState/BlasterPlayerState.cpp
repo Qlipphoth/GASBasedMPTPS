@@ -62,7 +62,9 @@ void ABlasterPlayerState::BeginPlay()
             AttributeSetBase->GetAttackPowerAttribute()).AddUObject(this, &ABlasterPlayerState::AttackPowerChanged);
         AttackSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
             AttributeSetBase->GetAttackSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::AttackSpeedChanged);
-        MoveSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+        DamageTypeChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+			AttributeSetBase->GetDamageTypeAttribute()).AddUObject(this, &ABlasterPlayerState::DamageTypeChanged);
+		MoveSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
             AttributeSetBase->GetMoveSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::MoveSpeedChanged);
         JumpSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
             AttributeSetBase->GetJumpSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::JumpSpeedChanged);
@@ -232,6 +234,11 @@ float ABlasterPlayerState::GetAttackSpeed() const
     return AttributeSetBase->GetAttackSpeed();
 }
 
+float ABlasterPlayerState::GetDamageType() const
+{
+	return AttributeSetBase->GetDamageType();
+}
+
 float ABlasterPlayerState::GetMoveSpeed() const
 {
     return AttributeSetBase->GetMoveSpeed();
@@ -257,6 +264,7 @@ void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
 		if (StatusBar)
 		{
+			StatusBar->SetVisibility(ESlateVisibility::Visible);
 			StatusBar->SetHealthPercentage(Health / GetMaxHealth());
 		}
 
@@ -333,6 +341,11 @@ void ABlasterPlayerState::AttackPowerChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::AttackSpeedChanged(const FOnAttributeChangeData& Data)
 {
     // SetAttackSpeed(Data.NewValue);
+}
+
+void ABlasterPlayerState::DamageTypeChanged(const FOnAttributeChangeData& Data)
+{
+	// SetDamageType(Data.NewValue);
 }
 
 void ABlasterPlayerState::MoveSpeedChanged(const FOnAttributeChangeData& Data)

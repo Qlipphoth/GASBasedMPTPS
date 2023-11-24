@@ -8,6 +8,7 @@
 #include "Projectile.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/BlasterTypes/ProjectileType.h"
+#include "Blaster/Character/BlasterCharacter.h"
 
 void AProjectileWeapon::BeginPlay()
 {
@@ -16,23 +17,15 @@ void AProjectileWeapon::BeginPlay()
 	ProjectileType = InitProjectileType;
 }
 
-void AProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME(AProjectileWeapon, ProjectileType);
-}
-
 void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
 
-
-	ProjectileType = TEnumAsByte<EProjectileType>(FMath::RandRange(0, 3));
-
 	// Weapon 被设置为了 Replicate，所以只有服务器端才能发射子弹
 	// 但 Projectile 也被设置为了 Replicate，所以服务器端生成的 Projectile 会被复制到客户端
 	// if (!HasAuthority()) return;
+
+	ProjectileType = static_cast<EProjectileType>(static_cast<uint8>(BlasterOwnerCharacter->GetDamageType()));
 
 	PlayFireMontage();
 
@@ -189,7 +182,7 @@ void AProjectileWeapon::Reload()
 	}
 }
 
-void AProjectileWeapon::OnRep_ProjectileType()
-{
+// void AProjectileWeapon::OnRep_ProjectileType()
+// {
 
-}
+// }

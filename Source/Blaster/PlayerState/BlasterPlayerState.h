@@ -64,6 +64,7 @@ protected:
 	FDelegateHandle StaminaRegenRateChangedDelegateHandle;
 	FDelegateHandle AttackPowerChangedDelegateHandle;
 	FDelegateHandle AttackSpeedChangedDelegateHandle;
+	FDelegateHandle DamageTypeChangedDelegateHandle;
 	FDelegateHandle MoveSpeedChangedDelegateHandle;
 	FDelegateHandle JumpSpeedChangedDelegateHandle;
 
@@ -79,6 +80,7 @@ protected:
 	virtual void StaminaRegenRateChanged(const FOnAttributeChangeData& Data);
 	virtual void AttackPowerChanged(const FOnAttributeChangeData& Data);
 	virtual void AttackSpeedChanged(const FOnAttributeChangeData& Data);
+	virtual void DamageTypeChanged(const FOnAttributeChangeData& Data);
 	virtual void MoveSpeedChanged(const FOnAttributeChangeData& Data);
 	virtual void JumpSpeedChanged(const FOnAttributeChangeData& Data);
 
@@ -101,7 +103,7 @@ private:
 	void OnRep_Team();
 
 public:
-	FORCEINLINE ETeam GetTeam() const { return Team; }
+	ETeam GetTeam() const { return Team; }
 	void SetTeam(ETeam TeamToSet);
 
 	/**
@@ -140,6 +142,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
 	float GetAttackSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
+	float GetDamageType() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
 	float GetMoveSpeed() const;

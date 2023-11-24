@@ -79,6 +79,10 @@ public:
 	FGameplayAttributeData AttackSpeed;
 	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, AttackSpeed)
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_DamageType)
+	FGameplayAttributeData DamageType;
+	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, DamageType)
+
 	UPROPERTY(BlueprintReadOnly, Category = "Move", ReplicatedUsing = OnRep_MoveSpeed)
 	FGameplayAttributeData MoveSpeed;
 	ATTRIBUTE_ACCESSORS(UBlasterAttributeSetBase, MoveSpeed)
@@ -137,6 +141,9 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_AttackSpeed(const FGameplayAttributeData& OldAttackSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_DamageType(const FGameplayAttributeData& OldDamageType);
 
 	UFUNCTION()
 	virtual void OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed);

@@ -20,7 +20,7 @@ public:
 	virtual void Fire(const FVector& HitTarget) override;
 	virtual void Reload() override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	// virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,11 +46,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Projectile")
 	EProjectileType InitProjectileType = EProjectileType::EPT_Normal;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ProjectileType, VisibleAnywhere, Category = "Weapon|Projectile")
+	// UPROPERTY(ReplicatedUsing = OnRep_ProjectileType, VisibleAnywhere, Category = "Weapon|Projectile")
 	EProjectileType ProjectileType;
 
-	UFUNCTION()
-	void OnRep_ProjectileType();
+	// UFUNCTION()
+	// void OnRep_ProjectileType();
 
 	void SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToSpawn, FVector3d& SpawnLocation, 
 		FRotator& SpawnRotation, FActorSpawnParameters& SpawnParams);

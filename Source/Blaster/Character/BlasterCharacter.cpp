@@ -34,6 +34,7 @@
 #include "Blaster/BlasterTypes/InputID.h"
 #include "Blaster/HUD/FloatStatusBarWidget.h"
 #include "Blaster/HUD/DamageTextWidgetCompotent.h"
+#include "DrawDebugHelpers.h"
 
 #pragma region Initialization
 
@@ -166,7 +167,8 @@ void ABlasterCharacter::PollInit()
 		{
 			OnPlayerStateInitialized();
 
-			ABlasterGameState* BlasterGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
+			// BlasterGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
+			BlasterGameState = GetWorld()->GetGameState<ABlasterGameState>();
 			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(BlasterPlayerState))
 			{
 				MulticastGainedTheLead();
@@ -978,11 +980,21 @@ void ABlasterCharacter::InitializeFloatingStatusBar()
 			{
 				OverheadWidget->SetWidget(FloatingStatusBar);
 
+				// FloatingStatusBar->SetVisibility(ESlateVisibility::Hidden);
+
 				// Setup the floating status bar
 				FloatingStatusBar->SetHealthPercentage(GetHealth() / GetMaxHealth());
 				// FloatingStatusBar->SetShieldPercentage(GetShield() / GetMaxShield());
 			}
 		}
+	}
+}
+
+void ABlasterCharacter::SetFloatingStatusBarVisibility(bool Visible)
+{
+	if (FloatingStatusBar)
+	{
+		FloatingStatusBar->SetVisibility(Visible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }
 
@@ -1359,6 +1371,16 @@ float ABlasterCharacter::GetAttackSpeed() const
     }
 
     return 0.0f;
+}
+
+float ABlasterCharacter::GetDamageType() const
+{
+	if (AttributeSetBase.IsValid())
+	{
+		return AttributeSetBase->GetDamageType();
+	}
+
+	return 0.0f;
 }
 
 float ABlasterCharacter::GetMoveSpeed() const

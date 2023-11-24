@@ -19,6 +19,7 @@
 #include "Animation/AnimInstance.h"
 #include "WeaponAnimInstance.h"
 
+
 #pragma region Initialization
 
 AWeapon::AWeapon()
@@ -214,6 +215,7 @@ void AWeapon::OnEquipped()
 	if (BlasterOwnerCharacter)
 	{
 		DamageEffectSpecHandle = BlasterOwnerCharacter->GetDamageEffectSpecHandle();
+
 		if (bInitUseServerSideRewind)
 		{
 			BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;

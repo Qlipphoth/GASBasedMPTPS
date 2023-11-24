@@ -147,6 +147,7 @@ void UBlasterAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProper
     DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, StaminaRegenRate, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, AttackPower, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, AttackSpeed, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, DamageType, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, MoveSpeed, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UBlasterAttributeSetBase, JumpSpeed, COND_None, REPNOTIFY_Always);
 }
@@ -204,6 +205,11 @@ void UBlasterAttributeSetBase::OnRep_AttackPower(const FGameplayAttributeData& O
 void UBlasterAttributeSetBase::OnRep_AttackSpeed(const FGameplayAttributeData& OldAttackSpeed)
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UBlasterAttributeSetBase, AttackSpeed, OldAttackSpeed);
+}
+
+void UBlasterAttributeSetBase::OnRep_DamageType(const FGameplayAttributeData& OldDamageType)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UBlasterAttributeSetBase, DamageType, OldDamageType);
 }
 
 void UBlasterAttributeSetBase::OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed)
