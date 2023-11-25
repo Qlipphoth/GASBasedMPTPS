@@ -55,8 +55,8 @@ public:
 	void PlayHitReactMontage_Implementation();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void ShowDamageNumber(float DamageAmount);
-	void ShowDamageNumber_Implementation(float DamageAmount);
+	void ShowDamageNumber(float DamageAmount, float HitType);
+	void ShowDamageNumber_Implementation(float DamageAmount, float HitType);
 
 
 	virtual void OnRep_ReplicatedMovement() override;
@@ -453,6 +453,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetDamageType() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	float GetHitType() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetMoveSpeed() const;

@@ -65,6 +65,7 @@ protected:
 	FDelegateHandle AttackPowerChangedDelegateHandle;
 	FDelegateHandle AttackSpeedChangedDelegateHandle;
 	FDelegateHandle DamageTypeChangedDelegateHandle;
+	FDelegateHandle HitTypeChangedDelegateHandle;
 	FDelegateHandle MoveSpeedChangedDelegateHandle;
 	FDelegateHandle JumpSpeedChangedDelegateHandle;
 
@@ -81,6 +82,7 @@ protected:
 	virtual void AttackPowerChanged(const FOnAttributeChangeData& Data);
 	virtual void AttackSpeedChanged(const FOnAttributeChangeData& Data);
 	virtual void DamageTypeChanged(const FOnAttributeChangeData& Data);
+	virtual void HitTypeChanged(const FOnAttributeChangeData& Data);
 	virtual void MoveSpeedChanged(const FOnAttributeChangeData& Data);
 	virtual void JumpSpeedChanged(const FOnAttributeChangeData& Data);
 
@@ -145,6 +147,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
 	float GetDamageType() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
+	float GetHitType() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
 	float GetMoveSpeed() const;

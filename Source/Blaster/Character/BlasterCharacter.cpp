@@ -57,6 +57,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	OverheadWidget->SetDrawSize(FVector2D(500, 500));
+	OverheadWidget->SetRelativeLocation(FVector(0, 0, 120));
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
@@ -179,7 +182,7 @@ void ABlasterCharacter::PollInit()
 
 void ABlasterCharacter::UpdateHUDAmmo()
 {
-	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	BlasterPlayerController = Cast<ABlasterPlayerController>(GetController());
 	if (BlasterPlayerController && Combat && Combat->EquippedWeapon)
 	{
 		BlasterPlayerController->SetHUDCarriedAmmo(Combat->CarriedAmmo);
@@ -246,8 +249,7 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
         SetStamina(GetMaxStamina());
 
         // HUD
-		BlasterPlayerController = BlasterPlayerController == nullptr ? 
-			Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+		BlasterPlayerController  = Cast<ABlasterPlayerController>(GetController());
 		if (BlasterPlayerController)
 		{
 			BlasterPlayerController->CreateHUD();
@@ -287,8 +289,7 @@ void ABlasterCharacter::OnRep_PlayerState()
 		SetStamina(GetMaxStamina());
 
         // HUD
-		BlasterPlayerController = BlasterPlayerController == nullptr ? 
-			Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+		BlasterPlayerController = Cast<ABlasterPlayerController>(GetController());
 		if (BlasterPlayerController)
 		{
 			BlasterPlayerController->CreateHUD();
@@ -697,7 +698,7 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 
 void ABlasterCharacter::PlaySwapMontage()
 {
-	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && SwapMontage)
 	{
 		AnimInstance->Montage_Play(SwapMontage);
@@ -730,7 +731,7 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
-	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && FireWeaponMontage)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
@@ -854,7 +855,7 @@ void ABlasterCharacter::PlayReloadMontage()
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
-	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && ReloadMontage)
 	{
 		AnimInstance->Montage_Play(ReloadMontage);
@@ -903,7 +904,7 @@ void ABlasterCharacter::GrenadeButtonPressed()
 
 void ABlasterCharacter::PlayThrowGrenadeMontage()
 {
-	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && ThrowGrenadeMontage)
 	{
 		AnimInstance->Montage_Play(ThrowGrenadeMontage);
@@ -970,7 +971,8 @@ void ABlasterCharacter::InitializeFloatingStatusBar()
 	}
 
 	// Setup UI for Locally Owned Players only, not AI or the server's copy of the PlayerControllers
-	ABlasterPlayerController* PC = Cast<ABlasterPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ABlasterPlayerController* PC = Cast<ABlasterPlayerController>(
+		UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC && PC->IsLocalPlayerController())
 	{
 		if (FloatingStatusBarClass)
@@ -978,6 +980,7 @@ void ABlasterCharacter::InitializeFloatingStatusBar()
 			FloatingStatusBar = CreateWidget<UFloatStatusBarWidget>(PC, FloatingStatusBarClass);
 			if (FloatingStatusBar && OverheadWidget)
 			{
+				// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("FloatingStatusBar && OverheadWidget"));
 				OverheadWidget->SetWidget(FloatingStatusBar);
 
 				// FloatingStatusBar->SetVisibility(ESlateVisibility::Hidden);
@@ -998,7 +1001,7 @@ void ABlasterCharacter::SetFloatingStatusBarVisibility(bool Visible)
 	}
 }
 
-void ABlasterCharacter::ShowDamageNumber_Implementation(float DamageAmount)
+void ABlasterCharacter::ShowDamageNumber_Implementation(float DamageAmount, float HitType)
 {
 	UDamageTextWidgetCompotent* DamageTextWidgetComponent = 
 		NewObject<UDamageTextWidgetCompotent>(this, DamageTextWidgetClass);
@@ -1007,7 +1010,7 @@ void ABlasterCharacter::ShowDamageNumber_Implementation(float DamageAmount)
 	{
 		DamageTextWidgetComponent->RegisterComponent();
 		DamageTextWidgetComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		DamageTextWidgetComponent->SetDamageText(DamageAmount);
+		DamageTextWidgetComponent->SetDamageText(DamageAmount, HitType);
 	}
 }
 
@@ -1207,7 +1210,7 @@ void ABlasterCharacter::ServerLeaveGame_Implementation()
 
 void ABlasterCharacter::PlayElimMontage()
 {
-	AnimInstance = AnimInstance == nullptr ? GetMesh()->GetAnimInstance() : AnimInstance;
+	AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && ElimMontage)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
@@ -1378,6 +1381,16 @@ float ABlasterCharacter::GetDamageType() const
 	if (AttributeSetBase.IsValid())
 	{
 		return AttributeSetBase->GetDamageType();
+	}
+
+	return 0.0f;
+}
+
+float ABlasterCharacter::GetHitType() const
+{
+	if (AttributeSetBase.IsValid())
+	{
+		return AttributeSetBase->GetHitType();
 	}
 
 	return 0.0f;

@@ -16,5 +16,5 @@ class BLASTER_API UDamageTextWidgetCompotent : public UWidgetComponent
 
 public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetDamageText(float Damage);
+	void SetDamageText(float Damage, float HitType);
 };

@@ -10,6 +10,7 @@ struct BlasterDamageStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Damage);
     DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(HitType);
 
 	BlasterDamageStatics()
 	{
@@ -20,6 +21,9 @@ struct BlasterDamageStatics
 
         // Capture Source's AttackPower. Snapshot
         DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, AttackPower, Source, true);
+
+        // Capture Target's HitType. Not Snapshot
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, HitType, Target, false);
 	}
 };
 
@@ -33,6 +37,7 @@ UBlasterDamageExecCalc::UBlasterDamageExecCalc()
 {
     RelevantAttributesToCapture.Add(DamageStatics().DamageDef);
     RelevantAttributesToCapture.Add(DamageStatics().AttackPowerDef);
+    RelevantAttributesToCapture.Add(DamageStatics().HitTypeDef);
 }
 
 void UBlasterDamageExecCalc::Execute_Implementation(
@@ -66,6 +71,9 @@ void UBlasterDamageExecCalc::Execute_Implementation(
     Damage += FMath::Max<float>(Spec.GetSetByCallerMagnitude(
         FGameplayTag::RequestGameplayTag(FName("Data.Damage")), false, -1.0f), 0.0f);
 
+    float HitType = FMath::Clamp<float>(Spec.GetSetByCallerMagnitude(
+        FGameplayTag::RequestGameplayTag(FName("Data.DamageType")), false, -1.0f), 0.0f, 3.0f);
+
     float UnmitigatedDamage = Damage; // Can multiply any damage boosters here
 
     float MitigatedDamage = UnmitigatedDamage * AttackPower;
@@ -80,6 +88,15 @@ void UBlasterDamageExecCalc::Execute_Implementation(
 				MitigatedDamage
 			)
 		);
+
+        // Set the Target's HitType meta attribute
+        OutExecutionOutput.AddOutputModifier(
+            FGameplayModifierEvaluatedData(
+                DamageStatics().HitTypeProperty,
+                EGameplayModOp::Override,
+                HitType
+            )
+        );
 	}
 
     // Broadcast Damage Event to Target ASC

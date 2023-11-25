@@ -68,6 +68,8 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 				{
 					DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
 						FGameplayTag::RequestGameplayTag(FName("Data.Damage")), DamageToCause);
+					DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+						FGameplayTag::RequestGameplayTag(FName("Data.DamageType")), static_cast<float>(ProjectileType));
 				}
 
 				if (HitCharacter)

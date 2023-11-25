@@ -64,6 +64,8 @@ void ABlasterPlayerState::BeginPlay()
             AttributeSetBase->GetAttackSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::AttackSpeedChanged);
         DamageTypeChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 			AttributeSetBase->GetDamageTypeAttribute()).AddUObject(this, &ABlasterPlayerState::DamageTypeChanged);
+		HitTypeChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+			AttributeSetBase->GetHitTypeAttribute()).AddUObject(this, &ABlasterPlayerState::HitTypeChanged);
 		MoveSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
             AttributeSetBase->GetMoveSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::MoveSpeedChanged);
         JumpSpeedChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
@@ -86,7 +88,7 @@ void ABlasterPlayerState::AddToScore(float ScoreAmount)
 {
 	// SetScore(Score + ScoreAmount);
     SetScore(GetScore() + ScoreAmount);
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
@@ -103,7 +105,7 @@ void ABlasterPlayerState::OnRep_Score()
 {
 	Super::OnRep_Score();
 
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
@@ -118,7 +120,7 @@ void ABlasterPlayerState::OnRep_Score()
 void ABlasterPlayerState::AddToDefeats(int32 DefeatsAmount)
 {
 	Defeats += DefeatsAmount;
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
@@ -131,7 +133,7 @@ void ABlasterPlayerState::AddToDefeats(int32 DefeatsAmount)
 
 void ABlasterPlayerState::OnRep_Defeats()
 {
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
@@ -239,6 +241,11 @@ float ABlasterPlayerState::GetDamageType() const
 	return AttributeSetBase->GetDamageType();
 }
 
+float ABlasterPlayerState::GetHitType() const
+{
+	return AttributeSetBase->GetHitType();
+}
+
 float ABlasterPlayerState::GetMoveSpeed() const
 {
     return AttributeSetBase->GetMoveSpeed();
@@ -256,7 +263,7 @@ float ABlasterPlayerState::GetJumpSpeed() const
 void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
     float Health = Data.NewValue;
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 
 	// Status Bar & HUD
 	if (Character)
@@ -279,7 +286,7 @@ void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::MaxHealthChanged(const FOnAttributeChangeData& Data)
 {
     float MaxHealth = Data.NewValue;
-	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : Character;
+	Character = Cast<ABlasterCharacter>(GetPawn());
 
 	// Status Bar & HUD
 	if (Character)
@@ -346,6 +353,11 @@ void ABlasterPlayerState::AttackSpeedChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::DamageTypeChanged(const FOnAttributeChangeData& Data)
 {
 	// SetDamageType(Data.NewValue);
+}
+
+void ABlasterPlayerState::HitTypeChanged(const FOnAttributeChangeData& Data)
+{
+	// SetHitType(Data.NewValue);
 }
 
 void ABlasterPlayerState::MoveSpeedChanged(const FOnAttributeChangeData& Data)
