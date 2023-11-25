@@ -18,5 +18,7 @@ enum class EBlasterGAInputID : uint8
     // 6 Ability3
     Ability3		UMETA(DisplayName = "Ability3"),
     // 7 Ability4
-    Ability4		UMETA(DisplayName = "Ability4")
+    Ability4		UMETA(DisplayName = "Ability4"),
+    // 8 Fire
+    Fire			UMETA(DisplayName = "Fire"),
 };

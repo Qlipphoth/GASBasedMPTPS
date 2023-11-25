@@ -353,6 +353,9 @@ void ABlasterPlayerState::AttackSpeedChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::DamageTypeChanged(const FOnAttributeChangeData& Data)
 {
 	// SetDamageType(Data.NewValue);
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("HitTypeChanged: %f"), Data.NewValue));
+
+	// TODO: 显示 UI
 }
 
 void ABlasterPlayerState::HitTypeChanged(const FOnAttributeChangeData& Data)

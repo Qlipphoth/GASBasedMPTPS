@@ -20,7 +20,7 @@ struct BlasterDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, Damage, Source, true);
 
         // Capture Source's AttackPower. Snapshot
-        DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, AttackPower, Source, true);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, AttackPower, Source, false);
 
         // Capture Target's HitType. Not Snapshot
         DEFINE_ATTRIBUTE_CAPTUREDEF(UBlasterAttributeSetBase, HitType, Target, false);

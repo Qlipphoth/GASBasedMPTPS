@@ -211,11 +211,13 @@ void AWeapon::OnEquipped()
 
 	// EnableCustomDepth(false);
 
-	// 绑定高 Ping 事件，不使用 Rewind
+	
 	if (BlasterOwnerCharacter)
 	{
 		DamageEffectSpecHandle = BlasterOwnerCharacter->GetDamageEffectSpecHandle();
+		ExtraEffectSpecHandle = BlasterOwnerCharacter->GetExtraEffectSpecHandle();
 
+		// 绑定高 Ping 事件
 		if (bInitUseServerSideRewind)
 		{
 			BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
@@ -242,6 +244,7 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	DamageEffectSpecHandle = nullptr;
+	ExtraEffectSpecHandle = TArray<FGameplayEffectSpecHandle>();
 
 	// WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	// WeaponMesh->MarkRenderStateDirty();
@@ -267,6 +270,7 @@ void AWeapon::OnEquippedSecondary()
 	WeaponMesh->SetEnableGravity(false);
 
 	DamageEffectSpecHandle = nullptr;
+	ExtraEffectSpecHandle = TArray<FGameplayEffectSpecHandle>();
 
 	// if (WeaponMesh)
 	// {

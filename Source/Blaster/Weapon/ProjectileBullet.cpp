@@ -78,6 +78,17 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 					if (HitASC)
 					{
 						HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+						
+						// 额外效果，如灼烧、中毒等
+						for (auto Handle : ExtraEffectSpecHandle)
+						{
+							if (Handle != nullptr)
+							{
+								// // 将 Instigator 设为被攻击者自己，这么做不符合逻辑但是比较方便
+								// Handle.Data.Get()->GetContext().AddInstigator(HitASC->GetOwnerActor(), HitASC->GetAvatarActor());
+								HitASC->ApplyGameplayEffectSpecToSelf(*Handle.Data.Get());
+							}
+						}
 					}
 				}
 			}

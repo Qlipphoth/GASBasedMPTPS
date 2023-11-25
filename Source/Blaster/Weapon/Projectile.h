@@ -71,6 +71,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
+	UPROPERTY(EditAnywhere, Category = "Properties|Damage")
+	TArray<FGameplayEffectSpecHandle> ExtraEffectSpecHandle;
+
 	UPROPERTY(EditAnywhere, Category = "Properties|Lifetime")
 	float LifeTime = 3.f;
 

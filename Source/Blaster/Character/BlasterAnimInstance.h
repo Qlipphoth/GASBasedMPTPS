@@ -19,8 +19,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 
 private:
-	// AllowPrivateAccess : 允许蓝图访问私有变量
-
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	class ABlasterCharacter* BlasterCharacter;
 

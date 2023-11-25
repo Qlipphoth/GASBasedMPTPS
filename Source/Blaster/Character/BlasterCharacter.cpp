@@ -97,6 +97,21 @@ ABlasterCharacter::ABlasterCharacter()
 
 	SetHitBoxes();
 	LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensation"));
+
+
+	// NiagaraComponent
+	IgnitedComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("IgnitedComponent"));
+	IgnitedComponent->SetupAttachment(GetMesh());
+
+	ElectrifiedComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ElectrifiedComponent"));
+	ElectrifiedComponent->SetupAttachment(GetMesh());
+
+	StunnedComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StunnedComponent"));
+	StunnedComponent->SetupAttachment(GetMesh());
+
+	PoisonedComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PoisonedComponent"));
+	PoisonedComponent->SetupAttachment(GetMesh());
+
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -127,6 +142,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 
 	AimOffset(DeltaTime);
 	HideCameraIfCharacterClose();
+	SetNiagaraComponent();
 	PollInit();
 }
 
@@ -176,6 +192,48 @@ void ABlasterCharacter::PollInit()
 			{
 				MulticastGainedTheLead();
 			}
+		}
+	}
+}
+
+void ABlasterCharacter::SetNiagaraComponent()
+{
+	if (GetAbilitySystemComponent())
+	{
+		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Ignited"))))
+		{
+			IgnitedComponent->Activate();
+		}
+		else
+		{
+			IgnitedComponent->Deactivate();
+		}
+
+		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Electrified"))))
+		{
+			ElectrifiedComponent->Activate();
+		}
+		else
+		{
+			ElectrifiedComponent->Deactivate();
+		}
+
+		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Stunned"))))
+		{
+			StunnedComponent->Activate();
+		}
+		else
+		{
+			StunnedComponent->Deactivate();
+		}
+
+		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Poisoned"))))
+		{
+			PoisonedComponent->Activate();
+		}
+		else
+		{
+			PoisonedComponent->Deactivate();
 		}
 	}
 }

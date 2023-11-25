@@ -166,6 +166,9 @@ protected:
 	// 用于造成伤害的 GE
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
+	// 额外效果的 GE
+	TArray<FGameplayEffectSpecHandle> ExtraEffectSpecHandle;
+
 	//============================= UI =============================//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
@@ -225,6 +228,20 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components|Combat")
 	class ULagCompensationComponent* LagCompensation;
 
+
+	UPROPERTY(VisibleAnywhere, Category = "Components|Niagara")
+	class UNiagaraComponent* IgnitedComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components|Niagara")
+	class UNiagaraComponent* ElectrifiedComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components|Niagara")
+	class UNiagaraComponent* StunnedComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components|Niagara")
+	class UNiagaraComponent* PoisonedComponent;
+
+	void SetNiagaraComponent();
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -400,6 +417,15 @@ public:	// Getter & Setter
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetDamageEffectSpecHandle(FGameplayEffectSpecHandle Handle) { DamageEffectSpecHandle = Handle; }
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE TArray<FGameplayEffectSpecHandle> GetExtraEffectSpecHandle() const { return ExtraEffectSpecHandle; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void AddExtraEffectSpecHandle(FGameplayEffectSpecHandle Handle) { ExtraEffectSpecHandle.Add(Handle); }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void ClearExtraEffectSpecHandles() { ExtraEffectSpecHandle.Empty(); }
+
 	ECombatState GetCombatState() const;
 	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 
@@ -419,6 +445,19 @@ public:	// Getter & Setter
 	FORCEINLINE class UFloatStatusBarWidget* GetFloatingStatusBar() const { return FloatingStatusBar; }
 
 	void SetFloatingStatusBarVisibility(bool Visible);
+
+
+	UFUNCTION(BlueprintCallable)
+	UNiagaraComponent* GetIgnitedComponent() const { return IgnitedComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UNiagaraComponent* GetElectrifiedComponent() const { return ElectrifiedComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UNiagaraComponent* GetStunnedComponent() const { return StunnedComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UNiagaraComponent* GetPoisonedComponent() const { return PoisonedComponent; }
 
 public:
 	/**

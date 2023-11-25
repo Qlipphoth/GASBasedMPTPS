@@ -129,7 +129,9 @@ void AProjectileWeapon::SpawnProjectiles(TSubclassOf<AProjectile>& ProjectileToS
 		SpawnedProjectile->HeadShotDamage = HeadShotDamage;
 
 		// Pass the DamageEffectSpecHandle to the Projectile
-		SpawnedProjectile->DamageEffectSpecHandle = DamageEffectSpecHandle;
+		SpawnedProjectile->DamageEffectSpecHandle = BlasterOwnerCharacter->GetDamageEffectSpecHandle();
+
+		SpawnedProjectile->ExtraEffectSpecHandle = BlasterOwnerCharacter->GetExtraEffectSpecHandle();
 
 		// 将 Projectile 的 bUseServerSideRewind 设置为 Weapon 的 bUseServerSideRewind
 		SpawnedProjectile->bUseServerSideRewind = bUseServerSideRewind;

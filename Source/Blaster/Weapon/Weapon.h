@@ -150,6 +150,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Damage")
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Damage")
+	TArray<FGameplayEffectSpecHandle> ExtraEffectSpecHandle;
+
 	UPROPERTY()
 	class ABlasterCharacter* BlasterOwnerCharacter;
 	UPROPERTY()
