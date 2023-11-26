@@ -7,6 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
 #include "Blaster/BlasterTypes/Team.h"
+#include "GameplayTagContainer.h"
 #include "BlasterPlayerState.generated.h"
 
 /**
@@ -87,6 +88,11 @@ protected:
 	virtual void JumpSpeedChanged(const FOnAttributeChangeData& Data);
 
 	// Tag change callbacks
+	virtual void IgnitedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void ElectrifiedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void StunnedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void PoisonedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 
 private:
 

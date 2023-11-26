@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
 #include "BlasterASC.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameplayTagContainer.h"
 #include "FloatStatusBarWidget.generated.h"
 
 /**
@@ -23,4 +24,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetCharacterName(const FText& NewName);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetDebuffBox(FGameplayTag DebuffTag, int32 StackNum);
+
 };

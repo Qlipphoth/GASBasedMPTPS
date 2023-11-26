@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "GameplayTagContainer.h"
 #include "BlasterHUD.generated.h"
 
 
@@ -58,6 +59,11 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDGrenades(int32 Grenades);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetDebuffBar(FGameplayTag DebuffTag, int32 StackNum);
 
 protected:
 	virtual void BeginPlay() override;

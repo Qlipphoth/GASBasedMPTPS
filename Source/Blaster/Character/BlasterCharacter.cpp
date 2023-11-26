@@ -57,9 +57,10 @@ ABlasterCharacter::ABlasterCharacter()
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
-	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	OverheadWidget->SetDrawSize(FVector2D(500, 500));
-	OverheadWidget->SetRelativeLocation(FVector(0, 0, 120));
+
+	SideWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("SideWidget"));
+	SideWidget->SetupAttachment(RootComponent);
+	
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
@@ -142,7 +143,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 
 	AimOffset(DeltaTime);
 	HideCameraIfCharacterClose();
-	SetNiagaraComponent();
+	// SetNiagaraComponent();
 	PollInit();
 }
 
@@ -192,48 +193,6 @@ void ABlasterCharacter::PollInit()
 			{
 				MulticastGainedTheLead();
 			}
-		}
-	}
-}
-
-void ABlasterCharacter::SetNiagaraComponent()
-{
-	if (GetAbilitySystemComponent())
-	{
-		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Ignited"))))
-		{
-			IgnitedComponent->Activate();
-		}
-		else
-		{
-			IgnitedComponent->Deactivate();
-		}
-
-		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Electrified"))))
-		{
-			ElectrifiedComponent->Activate();
-		}
-		else
-		{
-			ElectrifiedComponent->Deactivate();
-		}
-
-		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Stunned"))))
-		{
-			StunnedComponent->Activate();
-		}
-		else
-		{
-			StunnedComponent->Deactivate();
-		}
-
-		if (GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Debuff.Poisoned"))))
-		{
-			PoisonedComponent->Activate();
-		}
-		else
-		{
-			PoisonedComponent->Deactivate();
 		}
 	}
 }

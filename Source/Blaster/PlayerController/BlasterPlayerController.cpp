@@ -229,7 +229,6 @@ void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 	{
 		BlasterHUD->SetHUDWeaponAmmo(Ammo);
 	}
-
 }
 
 void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
@@ -239,7 +238,6 @@ void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	{
 		BlasterHUD->SetHUDCarriedAmmo(Ammo);
 	}
-
 }
 
 void ABlasterPlayerController::SetHUDGrenades(int32 Grenades)
@@ -249,7 +247,6 @@ void ABlasterPlayerController::SetHUDGrenades(int32 Grenades)
 	{
 		BlasterHUD->SetHUDGrenades(Grenades);
 	}
-
 }
 
 #pragma endregion PlayerHUD

@@ -9,6 +9,7 @@
 #include "Blaster/BlasterGAS/BlasterAttributeSetBase.h"
 #include "Blaster/BlasterTypes/InputID.h"
 #include "Net/UnrealNetwork.h"
+#include "NiagaraComponent.h"
 
 ABlasterPlayerState::ABlasterPlayerState()
 {
@@ -19,7 +20,9 @@ ABlasterPlayerState::ABlasterPlayerState()
     // Mixed mode means we only are replicated the GEs to ourself, not the GEs to simulated proxies. 
 	// If another GDPlayerState (Hero) receives a GE, we won't be told about it by the Server. 
 	// Attributes, GameplayTags, and GameplayCues will still replicate to us.
-    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	// Full mode means we are replicating all GEs to all clients.
+    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 
     // Create the attribute set, this replicates by default
 	// Adding it as a subobject of the owning actor of an AbilitySystemComponent
@@ -72,6 +75,18 @@ void ABlasterPlayerState::BeginPlay()
             AttributeSetBase->GetJumpSpeedAttribute()).AddUObject(this, &ABlasterPlayerState::JumpSpeedChanged);
     
         // Tags change callbacks
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Debuff.Ignited")), 
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::IgnitedTagChanged);
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Debuff.Electrified")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::ElectrifiedTagChanged);
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Debuff.Stunned")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::StunnedTagChanged);
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Debuff.Poisoned")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::PoisonedTagChanged);
     }
 }
 
@@ -371,6 +386,108 @@ void ABlasterPlayerState::MoveSpeedChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::JumpSpeedChanged(const FOnAttributeChangeData& Data)
 {
     // SetJumpSpeed(Data.NewValue);
+}
+
+#pragma endregion
+
+#pragma region Tag change callbacks
+
+void ABlasterPlayerState::IgnitedTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		// DebuffBox
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetDebuffBox(CallbackTag, NewCount);
+		}
+
+		// Niagara
+		if (NewCount > 0)
+		{
+			Character->GetIgnitedComponent()->Activate();
+		}
+		else
+		{
+			Character->GetIgnitedComponent()->Deactivate();
+		}
+	}
+}
+
+void ABlasterPlayerState::ElectrifiedTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		// DebuffBox
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetDebuffBox(CallbackTag, NewCount);
+		}
+
+		// Niagara
+		if (NewCount > 0)
+		{
+			Character->GetElectrifiedComponent()->Activate();
+		}
+		else
+		{
+			Character->GetElectrifiedComponent()->Deactivate();
+		}
+	}
+}
+
+void ABlasterPlayerState::StunnedTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("StunnedTagChanged: %d"), NewCount));
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		// DebuffBox
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetDebuffBox(CallbackTag, NewCount);
+		}
+
+		// Niagara
+		if (NewCount > 0)
+		{
+			Character->GetStunnedComponent()->Activate();
+		}
+		else
+		{
+			Character->GetStunnedComponent()->Deactivate();
+		}
+	}
+}
+
+void ABlasterPlayerState::PoisonedTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("PoisonedTagChanged: %d"), NewCount));
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		// DebuffBox
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetDebuffBox(CallbackTag, NewCount);
+		}
+
+		// Niagara
+		if (NewCount > 0)
+		{
+			Character->GetPoisonedComponent()->Activate();
+		}
+		else
+		{
+			Character->GetPoisonedComponent()->Deactivate();
+		}
+	}
 }
 
 #pragma endregion

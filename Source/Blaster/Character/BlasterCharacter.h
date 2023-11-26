@@ -219,6 +219,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Components|Widget")
 	class UWidgetComponent* OverheadWidget;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Components|Widget")
+	class UWidgetComponent* SideWidget;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Components|Combat")
 	class UCombatComponent* Combat;
 
@@ -241,7 +244,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components|Niagara")
 	class UNiagaraComponent* PoisonedComponent;
 
-	void SetNiagaraComponent();
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
