@@ -122,6 +122,8 @@ void ABlasterCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
+
+		BlasterPlayerState->AddInitialSkills();
 	}
 	// 隐藏 Grenaed
 	if (AttachedGrenade)
@@ -135,6 +137,8 @@ void ABlasterCharacter::BeginPlay()
 	// On respawn, they are set up in PossessedBy.
 	// When the player a client, the floating status bars are all set up in OnRep_PlayerState.
 	InitializeFloatingStatusBar();
+
+	
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -260,6 +264,8 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 
         AddInitialAbilities();
 
+		BlasterPlayerState->AddInitialSkills();
+		
 		// Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
         SetHealth(GetMaxHealth());
         SetMana(GetMaxMana());
@@ -299,6 +305,8 @@ void ABlasterCharacter::OnRep_PlayerState()
         // If we handle players disconnecting and rejoining in the future, we'll have to change this so that posession from rejoining doesn't reset attributes.
 		// For now assume possession = spawn/respawn.
         InitializeAttributes();
+
+		BlasterPlayerState->AddInitialSkills();
 
 		// Set Health/Mana/Stamina to their max. This is only necessary for *Respawn*.
 		SetHealth(GetMaxHealth());
@@ -475,6 +483,24 @@ void ABlasterCharacter::AddStartupEffects()
     }
 
     AbilitySystemComponent->bStartupEffectsApplied = true;
+}
+
+void ABlasterCharacter::AddAbilityToSelf(TSubclassOf<class UBlasterGA> AbilityClass, 
+		int32 AbilityLevel, EBlasterGAInputID AbilityInputID)
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+
+	AbilitySystemComponent->GiveAbility(
+		FGameplayAbilitySpec(
+			AbilityClass, 
+			AbilityLevel, 
+			static_cast<int32>(AbilityInputID),
+			this
+		)
+	);
 }
 
 #pragma endregion

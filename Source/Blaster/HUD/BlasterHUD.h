@@ -59,11 +59,13 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDGrenades(int32 Grenades);
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetDebuffBar(FGameplayTag DebuffTag, int32 StackNum);
+
+	void OnSkillSet(class UBlasterSkill* Skill, int32 Index);
+	void OnSkillUnset(int32 Index);
 
 protected:
 	virtual void BeginPlay() override;

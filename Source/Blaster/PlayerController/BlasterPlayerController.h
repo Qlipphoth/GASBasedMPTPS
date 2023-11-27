@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTagContainer.h"
 #include "BlasterPlayerController.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
@@ -25,6 +26,12 @@ public:
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
 	void SetHUDGrenades(int32 Grenades);
+	
+	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
+
+	void OnSkillSet(class UBlasterSkill* Skill, int32 Index);
+	void OnSkillUnset(int32 Index);
+
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -165,5 +172,9 @@ public:
 private:
 	void HideTeamScores();
 	void InitTeamScores();
+
+
+public:
+	class ABlasterHUD* GetBlasterHUD() const { return BlasterHUD; }
 
 };

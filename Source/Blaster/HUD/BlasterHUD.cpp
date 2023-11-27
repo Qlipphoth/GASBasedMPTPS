@@ -211,6 +211,26 @@ void ABlasterHUD::SetHUDGrenades(int32 Grenades)
 	}
 }
 
+void ABlasterHUD::SetBuffBar(FGameplayTag BuffTag, int32 StackNum)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetBuffBar(BuffTag, StackNum);
+	}
+}
 
+void ABlasterHUD::OnSkillSet(UBlasterSkill* Skill, int32 Index)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->OnSkillSet(Skill, Index);
+	}
+}
 
-
+void ABlasterHUD::OnSkillUnset(int32 Index)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->OnSkillUnset(Index);
+	}
+}

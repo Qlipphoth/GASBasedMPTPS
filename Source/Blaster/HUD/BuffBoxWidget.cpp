@@ -20,15 +20,15 @@ void UBuffBoxWidget::SetBuffStackNum(int32 StackNum)
     }
 }
 
-void UBuffBoxWidget::SetBuff()
+void UBuffBoxWidget::SetBuff(bool bIsVisible)
 {
-    if (BuffImage)
-    {
-        SetVisibility(ESlateVisibility::Visible);
-    }
     if (BuffStackNumText)
     {
-        // Set Empty Text
-        BuffStackNumText->SetText(FText::GetEmpty());
+        // 设置为空字符串
+        BuffStackNumText->SetText(FText::FromString(""));
+    }
+    if (BuffImage)
+    {
+        SetVisibility(bIsVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     }
 }

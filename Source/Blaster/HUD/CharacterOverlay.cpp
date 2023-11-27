@@ -5,6 +5,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "GameplayTagContainer.h"
 
 void UCharacterOverlay::NativeConstruct()
 {
@@ -14,6 +15,12 @@ void UCharacterOverlay::NativeConstruct()
     {
         HighPingImage->SetOpacity(0.f);
     }
+
+    FlameProjectileBuffTag = FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff.Flame"));
+    FlashProjectileBuffTag = FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff.Flash"));
+    PoisonProjectileBuffTag = FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff.Poison"));
+    RandomProjectileBuffTag = FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff.Random"));
+
 }
 
 void UCharacterOverlay::SetHUDHealth(float Health, float MaxHealth)

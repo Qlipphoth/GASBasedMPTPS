@@ -28,5 +28,5 @@ public:
 
 	// For Other Players
 	UFUNCTION(BlueprintCallable)
-	void SetBuff();
+	void SetBuff(bool bIsVisible);
 };

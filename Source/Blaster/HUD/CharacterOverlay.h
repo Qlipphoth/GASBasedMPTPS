@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameplayTagContainer.h"
 #include "CharacterOverlay.generated.h"
 
 /**
@@ -78,7 +79,28 @@ public:
 	void HideTeamScores();
 	void InitTeamScores();
 
+	// DebuffBar is set Completely in BP, to demonstrate how to do it in BP
+	// BuffBar is set partially in BP, to demonstrate different ways of doing it
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnSkillSet(class UBlasterSkill* Skill, int32 Index);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnSkillUnset(int32 Index);
+
 private:
 	virtual void NativeConstruct() override;
 
+	FGameplayTag FlameProjectileBuffTag;
+	FGameplayTag FlashProjectileBuffTag;
+	FGameplayTag PoisonProjectileBuffTag;
+	FGameplayTag RandomProjectileBuffTag;
+	
+	FGameplayTag RageBuffTag;
+	FGameplayTag AttackBuffTag;
+	FGameplayTag ShieldBuffTag;
+	FGameplayTag SpeedBuffTag;
+	FGameplayTag HealBuffTag;
 };

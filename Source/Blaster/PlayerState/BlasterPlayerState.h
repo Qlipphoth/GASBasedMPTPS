@@ -7,7 +7,9 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
 #include "Blaster/BlasterTypes/Team.h"
+#include "Blaster/BlasterTypes/InputID.h"
 #include "GameplayTagContainer.h"
+#include "GameplayAbilitySpec.h"
 #include "BlasterPlayerState.generated.h"
 
 /**
@@ -93,6 +95,36 @@ protected:
 	virtual void StunnedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	virtual void PoisonedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	// Tag change callbacks
+	UFUNCTION(Client, Reliable)
+	virtual void FlameProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void FlameProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
+
+	UFUNCTION(Client, Reliable)
+	virtual void FlashProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void FlashProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
+
+	UFUNCTION(Client, Reliable)
+	virtual void PoisonProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void PoisonProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
+
+	UFUNCTION(Client, Reliable)
+	virtual void RandomProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void RandomProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
+
+	virtual void ProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	// Initial Skills
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
+	TArray<TSubclassOf<class UBlasterSkill>> InitialSkills;
+
+	// Player Skills
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS|PlayerState|PlayerSkills")
+	TArray<FGameplayAbilitySpec> Skills{ FGameplayAbilitySpec(), FGameplayAbilitySpec(), FGameplayAbilitySpec(), FGameplayAbilitySpec() };
+
+	// Skills Key Mapping
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
+	TArray<EBlasterGAInputID> SkillsKeyMapping{ EBlasterGAInputID::Ability1, EBlasterGAInputID::Ability2, EBlasterGAInputID::Ability3, EBlasterGAInputID::Ability4 };
 
 private:
 
@@ -162,4 +194,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|Attributes")
 	float GetJumpSpeed() const;
+
+	// Player Skills
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	TArray<FGameplayAbilitySpec> GetSkills() { return Skills; }
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	int32 GetSkillCount() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	bool CanAddSkill() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	void SetSkill(class UBlasterSkill* NewSkill, int32 Index);
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	void AddInitialSkills();
+
 };

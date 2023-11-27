@@ -17,6 +17,7 @@
 #include "Components/Image.h"
 #include "Blaster/HUD/ReturnToMainMenu.h"
 #include "Blaster/BlasterTypes/Announcement.h"
+#include "GameplayTagContainer.h"
 
 
 #pragma region Initialization
@@ -246,6 +247,33 @@ void ABlasterPlayerController::SetHUDGrenades(int32 Grenades)
 	if (BlasterHUD)
 	{
 		BlasterHUD->SetHUDGrenades(Grenades);
+	}
+}
+
+void ABlasterPlayerController::SetBuffBar(FGameplayTag BuffTag, int32 StackNum)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	if (BlasterHUD)
+	{
+		BlasterHUD->SetBuffBar(BuffTag, StackNum);
+	}
+}
+
+void ABlasterPlayerController::OnSkillSet(class UBlasterSkill* Skill, int32 Index)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	if (BlasterHUD)
+	{
+		BlasterHUD->OnSkillSet(Skill, Index);
+	}
+}
+
+void ABlasterPlayerController::OnSkillUnset(int32 Index)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	if (BlasterHUD)
+	{
+		BlasterHUD->OnSkillUnset(Index);
 	}
 }
 

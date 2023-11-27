@@ -43,6 +43,10 @@ public:
 	// Implement IAbilitySystemInterface
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void AddAbilityToSelf(TSubclassOf<class UBlasterGA> AbilityClass, 
+		int32 AbilityLevel, EBlasterGAInputID AbilityInputID);
+
 	void         PlayFireMontage(bool bAiming);
 	void 	   	 PlayReloadMontage();	
 	void		 PlayElimMontage();
