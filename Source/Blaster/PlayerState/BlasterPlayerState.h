@@ -114,6 +114,8 @@ protected:
 
 	virtual void ProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	virtual void InfiniteAmmoTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	// Initial Skills
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
 	TArray<TSubclassOf<class UBlasterSkill>> InitialSkills;

@@ -87,7 +87,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 				RightHandTransform.GetLocation(), 
 				RightHandTransform.GetLocation() + 
 				(RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget()));
-			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaTime, 60.f);
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaTime, 600.f);
 		}
 
 		// bUseFABRIK = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
@@ -98,7 +98,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 		// 根据本地是否正处于 Reload 状态来决定是否使用 FAIBRIK
 		bool bFABRIKOverride = 
-			BlasterCharacter->IsLocallyControlled() &&
 			BlasterCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade &&
 			BlasterCharacter->bFinishedSwapping;
 

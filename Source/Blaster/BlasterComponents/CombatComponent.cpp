@@ -293,7 +293,7 @@ void UCombatComponent::StartFireTimer()
 		FireTimer,
 		this,
 		&UCombatComponent::FireTimerFinished,
-		EquippedWeapon->FireDelay
+		EquippedWeapon->FireDelay * FireRate
 	);
 }
 

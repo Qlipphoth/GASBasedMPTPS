@@ -192,6 +192,9 @@ private:
 	* Automatic fire
 	*/
 
+	UPROPERTY()
+	float FireRate = 1.f;
+
 	FTimerHandle FireTimer;
 	bool bCanFire = true;
 
@@ -259,6 +262,12 @@ private:
 public:	
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetFireRate() const { return FireRate; }
+	
+	UFUNCTION(BlueprintCallable)
+	void SetFireRate(float NewFireRate) { FireRate = NewFireRate; }
+
 
 // ====================== swap weapons ====================== // 
 

@@ -371,6 +371,8 @@ FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
 
 void AWeapon::SpendRound()
 {
+	if (BlasterOwnerCharacter && BlasterOwnerCharacter->IsInfiniteAmmo()) return;
+
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
 	SetHUDAmmo();
 	if (HasAuthority())

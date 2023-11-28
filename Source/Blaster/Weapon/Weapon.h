@@ -183,6 +183,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
 
+	// ==================== Ammo ==================== //
+
 	// UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
 	UPROPERTY(EditAnywhere)
 	int32 Ammo;

@@ -13,6 +13,8 @@
 #include "Net/UnrealNetwork.h"
 #include "NiagaraComponent.h"
 #include "Blaster/BlasterGAS/BlasterGameplayAbility/BlasterSkill.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Blaster/BlasterComponents/CombatComponent.h"
 
 ABlasterPlayerState::ABlasterPlayerState()
 {
@@ -108,6 +110,10 @@ void ABlasterPlayerState::BeginPlay()
 		// AbilitySystemComponent->RegisterGameplayTagEvent(
 		// 	FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff")),
 		// 	EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::ProjectileBuffTagChanged);
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Buff.InfiniteAmmo")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::InfiniteAmmoTagChanged);
 
 	}
 }
@@ -385,6 +391,11 @@ void ABlasterPlayerState::AttackPowerChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::AttackSpeedChanged(const FOnAttributeChangeData& Data)
 {
     // SetAttackSpeed(Data.NewValue);
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character && Character->GetCombat())
+	{
+		Character->GetCombat()->SetFireRate(Data.NewValue);
+	}
 }
 
 void ABlasterPlayerState::DamageTypeChanged(const FOnAttributeChangeData& Data)
@@ -403,11 +414,21 @@ void ABlasterPlayerState::HitTypeChanged(const FOnAttributeChangeData& Data)
 void ABlasterPlayerState::MoveSpeedChanged(const FOnAttributeChangeData& Data)
 {
     // SetMoveSpeed(Data.NewValue);
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character && Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+	}
 }
 
 void ABlasterPlayerState::JumpSpeedChanged(const FOnAttributeChangeData& Data)
 {
     // SetJumpSpeed(Data.NewValue);
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character && Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->JumpZVelocity = Data.NewValue;
+	}
 }
 
 #pragma endregion
@@ -581,18 +602,13 @@ void ABlasterPlayerState::ProjectileBuffTagChanged(const FGameplayTag CallbackTa
 	}
 }
 
-
-#pragma endregion
-
-#pragma region Helper functions
-
-void ABlasterPlayerState::ShowAbilityConfirmCancelText(bool ShowText)
+void ABlasterPlayerState::InfiniteAmmoTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
-    // ABlasterPlayerControllerGAS* PC = Cast<ABlasterPlayerControllerGAS>(GetOwner());
-    // if (PC)
-    // {
-    //     PC->ShowAbilityConfirmCancelText(ShowText);
-    // }
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		Character->SetInfiniteAmmo(NewCount > 0);
+	}
 }
 
 #pragma endregion
@@ -677,6 +693,19 @@ void ABlasterPlayerState::AddInitialSkills()
 		}
 		SetSkill(InitialSkills[i].GetDefaultObject(), i);
 	}
+}
+
+#pragma endregion
+
+#pragma region Helper functions
+
+void ABlasterPlayerState::ShowAbilityConfirmCancelText(bool ShowText)
+{
+    // ABlasterPlayerControllerGAS* PC = Cast<ABlasterPlayerControllerGAS>(GetOwner());
+    // if (PC)
+    // {
+    //     PC->ShowAbilityConfirmCancelText(ShowText);
+    // }
 }
 
 #pragma endregion

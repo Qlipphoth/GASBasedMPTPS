@@ -167,6 +167,8 @@ protected:
 	// 会让 Server 上的 Controller->Pawn 也变成无敌，因此逻辑不会有问题。
 	bool bInvincible = false;
 
+	bool bInfinteAmmo = false;
+
 	// 用于造成伤害的 GE
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
@@ -437,6 +439,12 @@ public:	// Getter & Setter
 
 	FORCEINLINE bool IsInvincible() const { return bInvincible; }
 	void SetInvincible(bool Invincible) { bInvincible = Invincible; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsInfiniteAmmo() const { return bInfinteAmmo; }
+	
+	UFUNCTION(BlueprintCallable)
+	void SetInfiniteAmmo(bool InfiniteAmmo) { bInfinteAmmo = InfiniteAmmo; }
 
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }

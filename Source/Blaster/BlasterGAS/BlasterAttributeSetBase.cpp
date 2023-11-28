@@ -126,6 +126,26 @@ void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectMo
             }
         }
     }
+    if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+    {
+        // Handle other health changes such as from healing or direct modifiers
+        SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+    }
+    if (Data.EvaluatedData.Attribute == GetManaAttribute())
+    {
+        // Handle mana changes
+        SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
+    }
+    if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+    {
+        // Handle stamina changes
+        SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
+    }
+    if (Data.EvaluatedData.Attribute == GetAttackSpeedAttribute())
+    {
+        // Handle fire rate changes
+        SetAttackSpeed(FMath::Clamp(GetAttackSpeed(), 0.5f, 3.f));
+    }
 }
 
 #pragma endregion
