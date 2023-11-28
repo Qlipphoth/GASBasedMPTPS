@@ -122,8 +122,6 @@ void ABlasterCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
-
-		BlasterPlayerState->AddInitialSkills();
 	}
 	// 隐藏 Grenaed
 	if (AttachedGrenade)
@@ -365,9 +363,9 @@ void ABlasterCharacter::BindASCInput()
                 static_cast<int32>(EBlasterGAInputID::Cancel)
             )
         );
-    }
 
-    ASCInputBound = true;
+		ASCInputBound = true;
+    }
 }
 
 UAbilitySystemComponent* ABlasterCharacter::GetAbilitySystemComponent() const

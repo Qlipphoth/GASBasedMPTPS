@@ -623,41 +623,47 @@ void ABlasterPlayerState::SetSkill(UBlasterSkill* NewSkill, int32 Index)
 		return;
 	}
 
-	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(GetOwner()) : Controller;
-
-	// 相当于丢弃 Skill[Index]
-	if (NewSkill == nullptr)
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
 	{
-		if (Skills[Index].Ability != nullptr)
-		{
-			// 清除 AbilitySystemComponent 中的 Ability
-			AbilitySystemComponent->ClearAbility(Skills[Index].Handle);
-			// UI 取消显示
-			if (Controller)
-			{
-				Controller->OnSkillUnset(Index);
-			}
-		}
-	}
-	// 替换技能
-	else
-	{
-		if (Skills[Index].Ability != nullptr)
-		{
-			AbilitySystemComponent->ClearAbility(Skills[Index].Handle);
-			if (Controller)
-			{
-				Controller->OnSkillUnset(Index);
-			}
-		}
-
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 		if (Controller)
 		{
-			Controller->OnSkillSet(NewSkill, Index);
-		}
+			// 相当于丢弃 Skill[Index]
+			if (NewSkill == nullptr)
+			{
+				if (Skills[Index].Ability != nullptr)
+				{
+					// 清除 AbilitySystemComponent 中的 Ability
+					AbilitySystemComponent->ClearAbility(Skills[Index].Handle);
+					// UI 取消显示
+					if (Controller)
+					{
+						Controller->OnSkillUnset(Index);
+					}
+				}
+			}
+			// 替换技能
+			else
+			{
+				if (Skills[Index].Ability != nullptr)
+				{
+					AbilitySystemComponent->ClearAbility(Skills[Index].Handle);
+					if (Controller)
+					{
+						Controller->OnSkillUnset(Index);
+					}
+				}
 
-		Skills[Index] = FGameplayAbilitySpec(NewSkill, 1, static_cast<int32>(SkillsKeyMapping[Index]), this);
-		AbilitySystemComponent->GiveAbility(Skills[Index]);
+				if (Controller)
+				{
+					Controller->OnSkillSet(NewSkill, Index);
+				}
+
+				Skills[Index] = FGameplayAbilitySpec(NewSkill, 1, static_cast<int32>(SkillsKeyMapping[Index]), this);
+				if (HasAuthority()) AbilitySystemComponent->GiveAbility(Skills[Index]);
+			}
+		}
 	}	
 }
 

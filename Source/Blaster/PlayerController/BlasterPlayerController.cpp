@@ -18,6 +18,7 @@
 #include "Blaster/HUD/ReturnToMainMenu.h"
 #include "Blaster/BlasterTypes/Announcement.h"
 #include "GameplayTagContainer.h"
+#include "AbilitySystemComponent.h"
 
 
 #pragma region Initialization
@@ -54,18 +55,25 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 
 #pragma region Override Functions
 
-/// @brief 在切换控制的角色时，更新 HUD 的血量显示
-/// @param InPawn  被控制的角色
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
+	// Server only
 	// Overridable native function for when the controller is asked to possess a pawn.
 	Super::OnPossess(InPawn);
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(InPawn);
-	if (BlasterCharacter)
+	OwningPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (OwningPlayerState)
 	{
-		// SetHUDHealth(BlasterCharacter->GetHP(), BlasterCharacter->GetMaxHP());
-		// SetHUDShield(BlasterCharacter->GetShield(), BlasterCharacter->GetMaxShield());
+		// Init ASC with PS (Owner) and our new Pawn (AvatarActor)
+		OwningPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(OwningPlayerState, InPawn);
 	}
+}
+
+void ABlasterPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// For edge cases where the PlayerState is repped before the Hero is possessed.
+	CreateHUD();
 }
 
 /// @brief 在客户端与服务器建立连接后，向服务器请求时间同步
@@ -264,6 +272,7 @@ void ABlasterPlayerController::OnSkillSet(class UBlasterSkill* Skill, int32 Inde
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 	if (BlasterHUD)
 	{
+		// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Controller::OnSkillSet"));
 		BlasterHUD->OnSkillSet(Skill, Index);
 	}
 }

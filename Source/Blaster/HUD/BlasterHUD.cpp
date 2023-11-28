@@ -14,16 +14,19 @@
 void ABlasterHUD::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	// AddCharacterOverlay();
+void ABlasterHUD::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
 }
 
 void ABlasterHUD::AddCharacterOverlay()
 {
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if (PlayerController && CharacterOverlayClass)
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && CharacterOverlayClass)
 	{
-		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
+		CharacterOverlay = CreateWidget<UCharacterOverlay>(OwningPlayer, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
 	}
 }
@@ -221,8 +224,13 @@ void ABlasterHUD::SetBuffBar(FGameplayTag BuffTag, int32 StackNum)
 
 void ABlasterHUD::OnSkillSet(UBlasterSkill* Skill, int32 Index)
 {
+	if (CharacterOverlay == nullptr)
+	{
+		AddCharacterOverlay();
+	}
 	if (CharacterOverlay)
 	{
+		// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("HUD::OnSkillSet"));
 		CharacterOverlay->OnSkillSet(Skill, Index);
 	}
 }

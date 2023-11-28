@@ -32,7 +32,6 @@ public:
 	void OnSkillSet(class UBlasterSkill* Skill, int32 Index);
 	void OnSkillUnset(int32 Index);
 
-	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -49,8 +48,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void SetHUDTime();
-	
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnRep_PlayerState() override;
+
 	virtual void SetupInputComponent() override;
 
 	/** 
@@ -64,6 +64,8 @@ protected:
 	// Reports the current server time to the client in response to ServerRequestServerTime
 	UFUNCTION(Client, Reliable)
 	void ClientReportServerTime(float TimeOfClientRequest, float TimeServerReceivedClientRequest);
+
+	void SetHUDTime();
 
 	float ClientServerDelta = 0.f; // difference between client and server time
 
