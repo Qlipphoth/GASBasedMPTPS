@@ -112,9 +112,13 @@ protected:
 	virtual void RandomProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	virtual void RandomProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
 
-	virtual void ProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	UFUNCTION(Client, Reliable)
+	virtual void RageBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void RageBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
 
+	UFUNCTION(Client, Reliable)
 	virtual void InfiniteAmmoTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void InfiniteAmmoTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
 
 	// Initial Skills
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")

@@ -95,12 +95,24 @@ void AProjectileRocket::ExplodeDamage()
 			{
 				DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
 					FGameplayTag::RequestGameplayTag(FName("Data.Damage")), DamageToCause);
+				DamageEffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(
+						FGameplayTag::RequestGameplayTag(FName("Data.DamageType")), static_cast<float>(ProjectileType));
 			}
 
 			UAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
 			if (HitASC)
 			{
 				HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+
+				for (auto Handle : ExtraEffectSpecHandle)
+				{
+					if (Handle != nullptr)
+					{
+						// // 将 Instigator 设为被攻击者自己，这么做不符合逻辑但是比较方便
+						// Handle.Data.Get()->GetContext().AddInstigator(HitASC->GetOwnerActor(), HitASC->GetAvatarActor());
+						HitASC->ApplyGameplayEffectSpecToSelf(*Handle.Data.Get());
+					}
+				}
 			}
 		}
 	}
@@ -129,6 +141,7 @@ void AProjectileRocket::DeActivateTimerFinished()
 		SpawnHitImpact();
 		DeactivateProjectile();
 		StopLoopingSound();
+		bShouldExplode = false;
 	}
 
 	StartDestroyTimer();

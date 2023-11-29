@@ -15,6 +15,7 @@
 #include "Blaster/BlasterGAS/BlasterGameplayAbility/BlasterSkill.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
+#include "AbilitySystemGlobals.h"
 
 ABlasterPlayerState::ABlasterPlayerState()
 {
@@ -107,13 +108,13 @@ void ABlasterPlayerState::BeginPlay()
 			FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff.Random")),
 			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::RandomProjectileBuffTagChanged);
 
-		// AbilitySystemComponent->RegisterGameplayTagEvent(
-		// 	FGameplayTag::RequestGameplayTag(FName("Ability.Projectile.Buff")),
-		// 	EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::ProjectileBuffTagChanged);
-
 		AbilitySystemComponent->RegisterGameplayTagEvent(
 			FGameplayTag::RequestGameplayTag(FName("State.Buff.InfiniteAmmo")),
 			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::InfiniteAmmoTagChanged);
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Buff.Rage")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::RageBuffTagChanged);
 
 	}
 }
@@ -306,13 +307,15 @@ float ABlasterPlayerState::GetJumpSpeed() const
 void ABlasterPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
     float Health = Data.NewValue;
-	Character = Cast<ABlasterCharacter>(GetPawn());
+	float OldHealth = Data.OldValue;
 
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	
 	// Status Bar & HUD
 	if (Character)
 	{
 		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
-		if (StatusBar)
+		if (StatusBar && Health < OldHealth && Health < GetMaxHealth())
 		{
 			StatusBar->SetVisibility(ESlateVisibility::Visible);
 			StatusBar->SetHealthPercentage(Health / GetMaxHealth());
@@ -355,12 +358,46 @@ void ABlasterPlayerState::HealthRegenRateChanged(const FOnAttributeChangeData& D
 
 void ABlasterPlayerState::ManaChanged(const FOnAttributeChangeData& Data)
 {
-    // SetMana(Data.NewValue);
+    float Mana = Data.NewValue;
+	Character = Cast<ABlasterCharacter>(GetPawn());
+
+	// Status Bar & HUD
+	if (Character)
+	{
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetManaPercentage(Mana / GetMaxMana());
+		}
+
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDShield(Mana, GetMaxMana());
+		}
+	}
 }
 
 void ABlasterPlayerState::MaxManaChanged(const FOnAttributeChangeData& Data)
 {
-    // SetMaxMana(Data.NewValue);
+	float MaxMana = Data.NewValue;
+	Character = Cast<ABlasterCharacter>(GetPawn());
+
+	// Status Bar & HUD
+	if (Character)
+	{
+		UFloatStatusBarWidget* StatusBar = Character->GetFloatingStatusBar();
+		if (StatusBar)
+		{
+			StatusBar->SetManaPercentage(GetMana() / MaxMana);
+		}
+
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDShield(GetMana(), MaxMana);
+		}
+	}
 }
 
 void ABlasterPlayerState::ManaRegenRateChanged(const FOnAttributeChangeData& Data)
@@ -534,7 +571,6 @@ void ABlasterPlayerState::PoisonedTagChanged(const FGameplayTag CallbackTag, int
 }
 
 void ABlasterPlayerState::FlameProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
-
 {
 	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
@@ -589,8 +625,18 @@ void ABlasterPlayerState::RandomProjectileBuffTagChanged_Implementation(const FG
 	}
 }
 
-void ABlasterPlayerState::ProjectileBuffTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+void ABlasterPlayerState::InfiniteAmmoTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		Character->SetInfiniteAmmo(NewCount > 0);
+	}
+}
+
+void ABlasterPlayerState::RageBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("RageBuffTagChanged: %d"), NewCount));
 	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
@@ -599,15 +645,6 @@ void ABlasterPlayerState::ProjectileBuffTagChanged(const FGameplayTag CallbackTa
 		{
 			Controller->SetBuffBar(CallbackTag, NewCount);
 		}
-	}
-}
-
-void ABlasterPlayerState::InfiniteAmmoTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	Character = Cast<ABlasterCharacter>(GetPawn());
-	if (Character)
-	{
-		Character->SetInfiniteAmmo(NewCount > 0);
 	}
 }
 

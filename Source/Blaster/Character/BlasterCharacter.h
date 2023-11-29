@@ -167,13 +167,23 @@ protected:
 	// 会让 Server 上的 Controller->Pawn 也变成无敌，因此逻辑不会有问题。
 	bool bInvincible = false;
 
+	UPROPERTY(Replicated)
 	bool bInfinteAmmo = false;
+
+	UPROPERTY(Replicated)
+	bool bCanFire = true;
+
+	UPROPERTY(Replicated)
+	bool bCanAim = true;
 
 	// 用于造成伤害的 GE
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
 	// 额外效果的 GE
 	TArray<FGameplayEffectSpecHandle> ExtraEffectSpecHandle;
+
+	UPROPERTY(Replicated)
+	class AActor* ShieldActor = nullptr;
 
 	//============================= UI =============================//
 
@@ -445,6 +455,24 @@ public:	// Getter & Setter
 	
 	UFUNCTION(BlueprintCallable)
 	void SetInfiniteAmmo(bool InfiniteAmmo) { bInfinteAmmo = InfiniteAmmo; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool CanFire() const { return bCanFire; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCanFire(bool CanFire) { bCanFire = CanFire; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool CanAim() const { return bCanAim; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCanAim(bool CanAim) { bCanAim = CanAim; }
+
+	UFUNCTION(BlueprintCallable)
+	class AActor* GetShieldActor() const { return ShieldActor; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetShieldActor(class AActor* Actor) { ShieldActor = Actor; }
 
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }

@@ -16,10 +16,10 @@ class BLASTER_API UBuffBoxWidget : public UUserWidget
 
 public:
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UImage* BuffImage;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UTextBlock* BuffStackNumText;
 
 	// For Local Player

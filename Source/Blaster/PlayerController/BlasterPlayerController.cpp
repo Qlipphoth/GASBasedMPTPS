@@ -138,6 +138,9 @@ void ABlasterPlayerController::ClientJoinMidgame_Implementation(
 	if (BlasterHUD && MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD->AddAnnouncement();
+		bShowMouseCursor = true;
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
 	}
 }
 
@@ -322,6 +325,9 @@ void ABlasterPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 	if (HasAuthority()) bShowTeamScores = bTeamsMatch;
 
 	CreateHUD();
+	bShowMouseCursor = false;
+	FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
 
 	if (BlasterHUD)
 	{

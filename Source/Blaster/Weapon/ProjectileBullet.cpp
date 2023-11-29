@@ -113,10 +113,12 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		}
 	}
 
-	SpawnHitImpact();
-	DeactivateProjectile();
-	bShouldExplode = false;
-
+	if (bShouldExplode)
+	{
+		SpawnHitImpact();
+		DeactivateProjectile();
+		bShouldExplode = false;
+	}
 	StartDestroyTimer();
 }
 
@@ -134,7 +136,9 @@ void AProjectileBullet::DeActivateTimerFinished()
 {
 	if (bShouldExplode)
 	{
+		SpawnHitImpact();
 		DeactivateProjectile();
+		bShouldExplode = false;
 	}
 
 	StartDestroyTimer();

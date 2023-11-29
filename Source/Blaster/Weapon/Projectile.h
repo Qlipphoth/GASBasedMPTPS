@@ -139,6 +139,8 @@ protected:
 
 	FTimerHandle DeActivateTimerHandle;
 	virtual void StartDeActivateTimer();
+
+	UFUNCTION(BlueprintCallable)
 	virtual void DeActivateTimerFinished();
 
 	FTimerHandle DestroyTimerHandle;
@@ -150,4 +152,8 @@ private:
 	class UNiagaraSystem* TrailNiagara;
 
 	void SetVFX();
+
+public:
+	UFUNCTION(BlueprintCallable)
+	class UProjectileMovementComponent* GetProjectileMovementComponent() const { return ProjectileMovementComponent; }
 };

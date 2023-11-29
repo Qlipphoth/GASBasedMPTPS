@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Blaster/Blaster.h"
 #include "AbilitySystemComponent.h"
+#include "Blaster/BlasterTypes/ProjectileType.h"
 
 #pragma region Initialization
 
@@ -572,6 +573,16 @@ void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(
 			if (HitASC)
 			{
 				HitASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+
+				for (auto Handle : Character->GetExtraEffectSpecHandle())
+				{
+					if (Handle != nullptr)
+					{
+						// // 将 Instigator 设为被攻击者自己，这么做不符合逻辑但是比较方便
+						// Handle.Data.Get()->GetContext().AddInstigator(HitASC->GetOwnerActor(), HitASC->GetAvatarActor());
+						HitASC->ApplyGameplayEffectSpecToSelf(*Handle.Data.Get());
+					}
+				}
 			}
 		}
 	}

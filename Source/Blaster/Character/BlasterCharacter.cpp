@@ -223,6 +223,12 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ABlasterCharacter, HP);
 	DOREPLIFETIME(ABlasterCharacter, Shield);
 
+	DOREPLIFETIME(ABlasterCharacter, bInfinteAmmo);
+	DOREPLIFETIME(ABlasterCharacter, bCanFire);
+	DOREPLIFETIME(ABlasterCharacter, bCanAim);
+
+	DOREPLIFETIME(ABlasterCharacter, ShieldActor);
+
 	// DOREPLIFETIME_CONDITION(ABlasterCharacter, AO_Yaw, COND_SkipOwner);
 	// DOREPLIFETIME_CONDITION(ABlasterCharacter, AO_Pitch, COND_SkipOwner);
 }
@@ -752,7 +758,7 @@ void ABlasterCharacter::PlaySwapMontage()
 
 void ABlasterCharacter::FireButtonPressed()
 {
-	if (Combat && Combat->bHoldingTheFlag) return;
+	if (!bCanFire || (Combat && Combat->bHoldingTheFlag)) return;
 	if (Combat)
 	{
 		Combat->FireButtonPressed(true);
@@ -793,7 +799,7 @@ bool ABlasterCharacter::IsAiming()
 
 void ABlasterCharacter::AimButtonPressed()
 {
-	if (Combat && Combat->bHoldingTheFlag) return;
+	if (!bCanAim || (Combat && Combat->bHoldingTheFlag)) return;
 	if (Combat)
 	{
 		Combat->SetAiming(true);

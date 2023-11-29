@@ -333,13 +333,20 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if (bScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPosition;
-
+		FCollisionQueryParams QueryParams;
+		
 		// 设置射线追踪的起点在角色面前，避免瞄准自己及其他 bug
 		if (Character)
 		{
 			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
 			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
 			// DrawDebugSphere(GetWorld(), Start, 10.f, 8, FColor::Red, false);
+			
+			if (Character->GetShieldActor() != nullptr)
+			{
+				QueryParams.AddIgnoredActor(Character->GetShieldActor());
+			}
+
 		}
 
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
@@ -348,7 +355,8 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			TraceHitResult,
 			Start,
 			End,
-			ECollisionChannel::ECC_Visibility
+			ECollisionChannel::ECC_Visibility,
+			QueryParams
 		);
 
 		if (!TraceHitResult.bBlockingHit)
