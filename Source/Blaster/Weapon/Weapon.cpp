@@ -374,17 +374,23 @@ void AWeapon::SpendRound()
 	if (BlasterOwnerCharacter && BlasterOwnerCharacter->IsInfiniteAmmo()) return;
 
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+
 	SetHUDAmmo();
-	if (HasAuthority())
-	{
-		// 向客户端同步 Ammo
-		ClientUpdateAmmo(Ammo);
-	}
-	else
-	{
-		// 如果不是服务器调用，就增加 Sequence 表示未经同步的 Ammo 数量
-		++Sequence;
-	}
+	// if (HasAuthority())
+	// {
+	// 	// 向客户端同步 Ammo
+	// 	ClientUpdateAmmo(Ammo);
+	// }
+	// else
+	// {
+	// 	// 如果不是服务器调用，就增加 Sequence 表示未经同步的 Ammo 数量
+	// 	++Sequence;
+	// }
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	SetHUDAmmo();
 }
 
 void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)

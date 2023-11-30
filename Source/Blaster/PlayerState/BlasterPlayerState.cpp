@@ -116,6 +116,10 @@ void ABlasterPlayerState::BeginPlay()
 			FGameplayTag::RequestGameplayTag(FName("State.Buff.Rage")),
 			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::RageBuffTagChanged);
 
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("State.Buff.SpeedUp")),
+			EGameplayTagEventType::AnyCountChange).AddUObject(this, &ABlasterPlayerState::SpeedUpTagChanged);
+
 	}
 }
 
@@ -572,57 +576,26 @@ void ABlasterPlayerState::PoisonedTagChanged(const FGameplayTag CallbackTag, int
 
 void ABlasterPlayerState::FlameProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	Character = Cast<ABlasterCharacter>(GetPawn());
-	if (Character)
-	{
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			Controller->SetBuffBar(CallbackTag, NewCount);
-		}
-	}
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("FlameProjectileBuffTagChanged: %d"), NewCount));
+	SetBuffBar(CallbackTag, NewCount);
 }
 
 void ABlasterPlayerState::FlashProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("FlashProjectileBuffTagChanged: %d"), NewCount));
-	Character = Cast<ABlasterCharacter>(GetPawn());
-	if (Character)
-	{
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			Controller->SetBuffBar(CallbackTag, NewCount);
-		}
-	}
+	SetBuffBar(CallbackTag, NewCount);
 }
 
 void ABlasterPlayerState::PoisonProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("PoisonProjectileBuffTagChanged: %d"), NewCount));
-	Character = Cast<ABlasterCharacter>(GetPawn());
-	if (Character)
-	{
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			Controller->SetBuffBar(CallbackTag, NewCount);
-		}
-	}
+	SetBuffBar(CallbackTag, NewCount);
 }
 
 void ABlasterPlayerState::RandomProjectileBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("RandomProjectileBuffTagChanged: %d"), NewCount));
-	Character = Cast<ABlasterCharacter>(GetPawn());
-	if (Character)
-	{
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			Controller->SetBuffBar(CallbackTag, NewCount);
-		}
-	}
+	SetBuffBar(CallbackTag, NewCount);
 }
 
 void ABlasterPlayerState::InfiniteAmmoTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
@@ -637,13 +610,24 @@ void ABlasterPlayerState::InfiniteAmmoTagChanged_Implementation(const FGameplayT
 void ABlasterPlayerState::RageBuffTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("RageBuffTagChanged: %d"), NewCount));
+	SetBuffBar(CallbackTag, NewCount);
+}
+
+void ABlasterPlayerState::SpeedUpTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("SpeedUpTagChanged: %d"), NewCount));
+	SetBuffBar(CallbackTag, NewCount);
+}
+
+void ABlasterPlayerState::SetBuffBar(FGameplayTag BuffTag, int32 StackNum)
+{
 	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 		if (Controller)
 		{
-			Controller->SetBuffBar(CallbackTag, NewCount);
+			Controller->SetBuffBar(BuffTag, StackNum);
 		}
 	}
 }
@@ -730,6 +714,26 @@ void ABlasterPlayerState::AddInitialSkills()
 		}
 		SetSkill(InitialSkills[i].GetDefaultObject(), i);
 	}
+}
+
+void ABlasterPlayerState::InitialSkillSlots()
+{
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			for (int32 i = 0; i < Skills.Num(); i++)
+			{
+				if (Skills[i].Ability != nullptr)
+				{
+					Controller->OnSkillSet(reinterpret_cast<UBlasterSkill*>(Skills[i].Ability), i);
+				}
+			}
+		}
+	}
+
 }
 
 #pragma endregion

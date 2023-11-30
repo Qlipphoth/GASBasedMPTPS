@@ -118,6 +118,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS|Effects")
 	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS|Effects")
+	TSubclassOf<class UGameplayEffect> PurifyEffect;
+
 	// Grant abilities on the Server. The Ability Specs will be replicated to the owning client.
 	virtual void AddInitialAbilities();
 
@@ -501,6 +504,9 @@ public:	// Getter & Setter
 	UFUNCTION(BlueprintCallable)
 	UNiagaraComponent* GetPoisonedComponent() const { return PoisonedComponent; }
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Purify();
+
 public:
 	/**
 	* Getters for attributes from GDAttributeSetBase
@@ -549,6 +555,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
 	float GetJumpSpeedBaseValue() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	virtual void SetHealthRegenRate(float HealthRegenRate);
+
+	UFUNCTION(BlueprintCallable, Category = "GAS|Attributes")
+	virtual void SetManaRegenRate(float ManaRegenRate);
 
 // ========================= swap weapon ========================= // 
 private:

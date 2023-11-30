@@ -109,6 +109,10 @@ void UBlasterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectMo
 
                 if (!TargetCharacter->IsAlive())
                 {
+                    TargetCharacter->Purify();
+                    TargetCharacter->SetHealthRegenRate(0.f);
+                    TargetCharacter->SetManaRegenRate(0.f);
+
                     // TargetCharacter was alive before this damage and now is not alive
                     BlasterGameMode = BlasterGameMode == nullptr ? GetWorld()->
 		                GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;

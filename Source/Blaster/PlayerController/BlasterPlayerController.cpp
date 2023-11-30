@@ -325,6 +325,12 @@ void ABlasterPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 	if (HasAuthority()) bShowTeamScores = bTeamsMatch;
 
 	CreateHUD();
+
+	if (OwningPlayerState)
+	{
+		OwningPlayerState->InitialSkillSlots();
+	}
+
 	bShowMouseCursor = false;
 	FInputModeGameOnly InputMode;
 	SetInputMode(InputMode);

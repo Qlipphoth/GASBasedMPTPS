@@ -120,6 +120,13 @@ protected:
 	virtual void InfiniteAmmoTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	virtual void InfiniteAmmoTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
 
+	UFUNCTION(Client, Reliable)
+	virtual void SpeedUpTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void SpeedUpTagChanged_Implementation(const FGameplayTag CallbackTag, int32 NewCount);
+
+	UFUNCTION()
+	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
+
 	// Initial Skills
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
 	TArray<TSubclassOf<class UBlasterSkill>> InitialSkills;
@@ -217,4 +224,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
 	void AddInitialSkills();
 
+	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
+	void InitialSkillSlots();
 };

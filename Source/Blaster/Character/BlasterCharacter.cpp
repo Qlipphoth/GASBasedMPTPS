@@ -507,6 +507,20 @@ void ABlasterCharacter::AddAbilityToSelf(TSubclassOf<class UBlasterGA> AbilityCl
 	);
 }
 
+void ABlasterCharacter::Purify()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+
+	AbilitySystemComponent->ApplyGameplayEffectToSelf(
+		PurifyEffect.GetDefaultObject(),
+		1.f, 
+		AbilitySystemComponent->MakeEffectContext()
+	);
+}
+
 #pragma endregion
 
 #pragma region Move
@@ -1507,6 +1521,22 @@ void ABlasterCharacter::SetStamina(float Stamina)
     {
         AttributeSetBase->SetStamina(Stamina);
     }
+}
+
+void ABlasterCharacter::SetHealthRegenRate(float HealthRegenRate)
+{
+	if (AttributeSetBase.IsValid())
+	{
+		AttributeSetBase->SetHealthRegenRate(HealthRegenRate);
+	}
+}
+
+void ABlasterCharacter::SetManaRegenRate(float ManaRegenRate)
+{
+	if (AttributeSetBase.IsValid())
+	{
+		AttributeSetBase->SetManaRegenRate(ManaRegenRate);
+	}
 }
 
 #pragma endregion
