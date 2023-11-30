@@ -153,7 +153,7 @@ void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	GetCharacterMovement()->JumpZVelocity = 1600.f;
+	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->GravityScale = 3.f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 350.f;
 

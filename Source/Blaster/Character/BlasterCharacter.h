@@ -301,8 +301,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ThrowGrenadeMontage;
 
-	void HideCameraIfCharacterClose();
-
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
 
@@ -506,6 +504,9 @@ public:	// Getter & Setter
 
 	UFUNCTION(BlueprintCallable)
 	virtual void Purify();
+
+	UFUNCTION()
+	void HideCameraIfCharacterClose();
 
 public:
 	/**
