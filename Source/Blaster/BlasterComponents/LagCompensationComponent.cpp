@@ -25,7 +25,7 @@ void ULagCompensationComponent::BeginPlay()
 
 	FFramePackage Package;
 	SaveFramePackage(Package);
-	ShowFramePackage(Package, FColor::Orange);
+	// ShowFramePackage(Package, FColor::Orange);
 }
 
 void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -61,7 +61,10 @@ void ULagCompensationComponent::SaveFrames()
 		SaveFramePackage(ThisFrame);
 		FrameHistory.AddHead(ThisFrame);
 
-		// ShowFramePackage(ThisFrame, FColor::Red);
+		if (Character->GetShowFramePackage())
+		{
+			ShowFramePackage(ThisFrame, FColor::Red);
+		}
 	}
 }
 

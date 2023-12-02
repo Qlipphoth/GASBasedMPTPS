@@ -127,10 +127,6 @@ protected:
 	UFUNCTION()
 	void SetBuffBar(FGameplayTag BuffTag, int32 StackNum);
 
-	// Initial Skills
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
-	TArray<TSubclassOf<class UBlasterSkill>> InitialSkills;
-
 	// Player Skills
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS|PlayerState|PlayerSkills")
 	TArray<FGameplayAbilitySpec> Skills{ FGameplayAbilitySpec(), FGameplayAbilitySpec(), FGameplayAbilitySpec(), FGameplayAbilitySpec() };
@@ -211,6 +207,10 @@ public:
 	// Player Skills
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
 	TArray<FGameplayAbilitySpec> GetSkills() { return Skills; }
+
+	// Initial Skills
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS|PlayerState|PlayerSkills")
+	TArray<TSubclassOf<class UBlasterSkill>> InitialSkills;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS|PlayerState|PlayerSkills")
 	int32 GetSkillCount() const;

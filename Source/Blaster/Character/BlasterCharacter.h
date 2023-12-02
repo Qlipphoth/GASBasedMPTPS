@@ -179,6 +179,9 @@ protected:
 	UPROPERTY(Replicated)
 	bool bCanAim = true;
 
+	UPROPERTY()
+	bool bShowFramePackage = false;
+
 	// 用于造成伤害的 GE
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
@@ -507,6 +510,12 @@ public:	// Getter & Setter
 
 	UFUNCTION()
 	void HideCameraIfCharacterClose();
+	
+	UFUNCTION(BlueprintCallable)
+	bool GetShowFramePackage() const { return bShowFramePackage; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetShowFramePackage(bool bShow) { bShowFramePackage = bShow; }
 
 public:
 	/**
